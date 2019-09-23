@@ -22,19 +22,30 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CShader* ps{ directx.AddShader(EShaderType::PixelShader, L"HLSL/PixelShader.hlsl", "main") };
 	
 	CEntityPool entity_pool{ directx };
+	CTexture* texture_bg{ entity_pool.AddSharedTexture(KAssetDir + "bg_space_seamless.png") };
+	CTexture* texture_sprite{ entity_pool.AddSharedTexture(KAssetDir + "neon_space_shooter.png")};
 	CEntity* entity_bg{ entity_pool.AddEntity() };
 	{
-		entity_bg->AddTexture(KAssetDir + "bg_space_seamless.png");
-		entity_bg->CreateRectangle(entity_bg->GetTexture(0)->GetTextureSize());
+		entity_bg->SetTexture(texture_bg);
+		entity_bg->CreateRectangle(texture_bg->GetTextureSize());
 		entity_bg->Sampler = ESampler::Point;
 	}
 
-	CEntity* entity_sprite{ entity_pool.AddEntity() };
+	CEntity* entity_main_ship{ entity_pool.AddEntity() };
 	{
-		entity_sprite->AddTexture(KAssetDir + "neon_space_shooter.png");
-		entity_sprite->CreateRectangle(XMFLOAT2(110, 80));
-		entity_sprite->SetRectangleUVRange(XMFLOAT2(0, 40), XMFLOAT2(110, 80));
-		entity_sprite->Sampler = ESampler::Linear;
+		entity_main_ship->SetTexture(texture_sprite);
+		entity_main_ship->CreateRectangle(XMFLOAT2(110, 80));
+		entity_main_ship->SetRectangleUVRange(XMFLOAT2(0, 40), XMFLOAT2(110, 80));
+		entity_main_ship->Sampler = ESampler::Linear;
+	}
+
+	CEntity* entity_main_ship_shot{ entity_pool.AddEntity() };
+	{
+		entity_main_ship_shot->SetTexture(texture_sprite);
+		entity_main_ship_shot->CreateRectangle(XMFLOAT2(110, 40));
+		entity_main_ship_shot->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(110, 40));
+		entity_main_ship_shot->Sampler = ESampler::Linear;
+		entity_main_ship_shot->Visible = true;
 	}
 
 	steady_clock clock{};
@@ -86,19 +97,19 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			if (time_now_microsec >= timer_movement + 3'000)
 			{
-				if (turn_left) entity_sprite->RotationAngle += 0.03f;
-				if (turn_right) entity_sprite->RotationAngle -= 0.03f;
-				if (move_forward) entity_sprite->MoveForward(0.8f);
-				if (move_backward) entity_sprite->MoveBackward(0.5f);
-				if (move_left) entity_sprite->MoveLeft(0.5f);
-				if (move_right) entity_sprite->MoveRight(0.5f);
+				if (turn_left) entity_main_ship->RotationAngle += 0.03f;
+				if (turn_right) entity_main_ship->RotationAngle -= 0.03f;
+				if (move_forward) entity_main_ship->MoveForward(0.8f);
+				if (move_backward) entity_main_ship->MoveBackward(0.5f);
+				if (move_left) entity_main_ship->MoveLeft(0.5f);
+				if (move_right) entity_main_ship->MoveRight(0.5f);
 
-				if (entity_sprite->RotationAngle >= XM_2PI) entity_sprite->RotationAngle = 0.0f;
-				if (entity_sprite->RotationAngle <= -XM_2PI) entity_sprite->RotationAngle = 0.0f;
-				entity_sprite->WorldPosition.x = max(entity_sprite->WorldPosition.x, -KWindowSize.x / 2);
-				entity_sprite->WorldPosition.x = min(entity_sprite->WorldPosition.x, KWindowSize.x / 2);
-				entity_sprite->WorldPosition.y = max(entity_sprite->WorldPosition.y, -KWindowSize.y / 2);
-				entity_sprite->WorldPosition.y = min(entity_sprite->WorldPosition.y, KWindowSize.y / 2);
+				if (entity_main_ship->RotationAngle >= XM_2PI) entity_main_ship->RotationAngle = 0.0f;
+				if (entity_main_ship->RotationAngle <= -XM_2PI) entity_main_ship->RotationAngle = 0.0f;
+				entity_main_ship->WorldPosition.x = max(entity_main_ship->WorldPosition.x, -KWindowSize.x / 2);
+				entity_main_ship->WorldPosition.x = min(entity_main_ship->WorldPosition.x, KWindowSize.x / 2);
+				entity_main_ship->WorldPosition.y = max(entity_main_ship->WorldPosition.y, -KWindowSize.y / 2);
+				entity_main_ship->WorldPosition.y = min(entity_main_ship->WorldPosition.y, KWindowSize.y / 2);
 
 				timer_movement = time_now_microsec;
 			}
@@ -116,7 +127,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			entity_pool.DrawEntities();
 
 			directx.RenderText(L"Delta Time: " + to_wstring(delta_time) + L" ÃÊ", XMFLOAT2(0, 0), Colors::LimeGreen);
-			directx.RenderText(L"Rotation angle: " + to_wstring(entity_sprite->RotationAngle), XMFLOAT2(0, 15), Colors::LimeGreen);
+			directx.RenderText(L"Rotation angle: " + to_wstring(entity_main_ship->RotationAngle), XMFLOAT2(0, 15), Colors::LimeGreen);
 
 			directx.EndRendering();
 

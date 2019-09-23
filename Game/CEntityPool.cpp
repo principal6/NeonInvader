@@ -11,10 +11,26 @@ CEntity* CEntityPool::GetEntity(size_t Index)
 	return m_vEntities[Index].get();
 }
 
+CTexture* CEntityPool::AddSharedTexture(const string& TextureFileName)
+{
+	m_vSharedTextures.emplace_back(make_unique<CTexture>(m_DirectX->m_Device.Get(), m_DirectX->m_DeviceContext.Get()));
+
+	m_vSharedTextures.back()->CreateTexture(TextureFileName);
+
+	return m_vSharedTextures.back().get();
+}
+
+CTexture* CEntityPool::GetSharedTexture(size_t Index)
+{
+	return m_vSharedTextures[Index].get();
+}
+
 void CEntityPool::DrawEntities()
 {
 	for (auto& i : m_vEntities)
 	{
+		if (!i->Visible) continue;
+
 		m_DirectX->UseSampler(i->Sampler);
 
 		XMMATRIX Translation{ XMMatrixTranspose(XMMatrixTranslation(i->WorldPosition.x, i->WorldPosition.y, 0.0f)) };

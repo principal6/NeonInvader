@@ -11,10 +11,16 @@ public:
 
 	CEntity* AddEntity();
 	CEntity* GetEntity(size_t Index);
+
+	CTexture* AddSharedTexture(const string& TextureFileName);
+	CTexture* GetSharedTexture(size_t Index);
 	
 	void DrawEntities();
 
 private:
-	CDirectX*					m_DirectX{};
-	vector<unique_ptr<CEntity>>	m_vEntities{};
+	CDirectX*						m_DirectX{};
+
+	vector<unique_ptr<CEntity>>		m_vEntities{};
+
+	vector<unique_ptr<CTexture>>	m_vSharedTextures{};
 };

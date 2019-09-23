@@ -42,9 +42,8 @@ public:
 
 	void CreateRectangle(const XMFLOAT2& RectangleSize);
 
-	void AddTexture(const string& TextureFileName);
-	CTexture* GetTexture(size_t Index);
-
+	void SetTexture(CTexture* SharedTexture);
+	
 	void SetRectangleUVRange(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip = ERenderFlipOption::None);
 	void SetRectangleUVRangeAndSize(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip = ERenderFlipOption::None);
 
@@ -67,6 +66,7 @@ public:
 	XMFLOAT2				WorldPosition{};
 	float					RotationAngle{};
 	XMFLOAT2				Scalar{ 1.0f, 1.0f };
+	bool					Visible{ true };
 
 private:
 	void UpdateAnimationFrame();
@@ -75,8 +75,8 @@ private:
 	ID3D11Device*					m_Device{};
 	ID3D11DeviceContext*			m_DeviceContext{};
 
-	vector<CObject2D>				m_vObject2Ds{};
-	vector<CTexture>				m_vTextures{};
+	unique_ptr<CObject2D>			m_Object2D{};
+	CTexture*						m_PtrSharedTexture{};
 
 	XMMATRIX						m_MatrixWorld{ XMMatrixIdentity() };
 
