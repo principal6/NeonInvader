@@ -1,6 +1,9 @@
 #include "Helper\CDirectX.h"
 #include "Game\CEntityPool.h"
 
+static constexpr size_t KMaxShotLimit{ 20 };
+static constexpr XMFLOAT2 KWindowSize{ 960.0f, 540.0f };
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 struct SShot
@@ -9,10 +12,48 @@ struct SShot
 	bool Dead{ true };
 };
 
+void SpawnShot(size_t MaxShots, vector<SShot>& vShots, float ShotSpeed, const CEntity* EntityMainShip)
+{
+	for (size_t i = 0; i < MaxShots; ++i)
+	{
+		SShot& shot{ vShots[i] };
+		if (shot.Dead)
+		{
+			XMMATRIX mat_rot{ XMMatrixRotationZ(EntityMainShip->RotationAngle) };
+			XMVECTOR vec{ XMVector2TransformNormal({ 0.0f, 1.0f, 0.0f, 0.0f }, mat_rot) };
+
+			shot.PtrEntity->RotationAngle = EntityMainShip->RotationAngle;
+			shot.PtrEntity->SetLinearVelocity(vec * ShotSpeed);
+
+			vec *= 30.0f;
+			shot.PtrEntity->WorldPosition.x = EntityMainShip->WorldPosition.x + XMVectorGetX(vec);
+			shot.PtrEntity->WorldPosition.y = EntityMainShip->WorldPosition.y + XMVectorGetY(vec);
+
+			shot.PtrEntity->Visible = true;
+			shot.Dead = false;
+
+			break;
+		}
+	}
+}
+
+void CheckDeadShot(vector<SShot>& vShots)
+{
+	for (auto& i : vShots)
+	{
+		if (i.PtrEntity->WorldPosition.x < -KWindowSize.x / 2 - 20.0f ||
+			i.PtrEntity->WorldPosition.x > +KWindowSize.x / 2 + 20.0f ||
+			i.PtrEntity->WorldPosition.y < -KWindowSize.y / 2 - 20.0f ||
+			i.PtrEntity->WorldPosition.y > +KWindowSize.y / 2 + 20.0f)
+		{
+			i.PtrEntity->Visible = false;
+			i.Dead = true;
+		}
+	}
+}
+
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPTSTR lpCmdLine, _In_ int nShowCmd)
 {
-	static constexpr size_t KMaxShotLimit{ 20 };
-	static constexpr XMFLOAT2 KWindowSize{ 960.0f, 540.0f };
 	static constexpr float KClearColor[]{ 0.0f, 0.6f, 1.0f, 1.0f };
 	static constexpr D3D11_INPUT_ELEMENT_DESC KInputLayout[]
 	{
@@ -68,6 +109,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	float delta_time{};
 	bool keys[MAX_PATH]{};
 	size_t max_shots{ 3 };
+	float shot_speed{ 400.0f };
 	while (true)
 	{
 		static MSG msg{};
@@ -130,27 +172,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				if (time_now_microsec >= timer_shot + 300'000)
 				{
-					for (size_t i = 0; i < max_shots; ++i)
-					{
-						SShot& shot{ v_main_ship_shots[i] };
-						if (shot.Dead)
-						{
-							XMMATRIX mat_rot{ XMMatrixRotationZ(entity_main_ship->RotationAngle) };
-							XMVECTOR vec{ XMVector2TransformNormal({ 0.0f, 1.0f, 0.0f, 0.0f }, mat_rot) };
-
-							shot.PtrEntity->RotationAngle = entity_main_ship->RotationAngle;
-							shot.PtrEntity->SetLinearVelocity(vec * 300.0f);
-
-							vec *= 30.0f;
-							shot.PtrEntity->WorldPosition.x = entity_main_ship->WorldPosition.x + XMVectorGetX(vec);
-							shot.PtrEntity->WorldPosition.y = entity_main_ship->WorldPosition.y + XMVectorGetY(vec);
-
-							shot.PtrEntity->Visible = true;
-							shot.Dead = false;
-							
-							break;
-						}
-					}
+					SpawnShot(max_shots, v_main_ship_shots, shot_speed, entity_main_ship);
 
 					timer_shot = time_now_microsec;
 				}
@@ -174,17 +196,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			directx.EndRendering();
 
-			for (auto& i : v_main_ship_shots)
-			{
-				if (i.PtrEntity->WorldPosition.x < -KWindowSize.x / 2 - 20.0f ||
-					i.PtrEntity->WorldPosition.x > +KWindowSize.x / 2 + 20.0f ||
-					i.PtrEntity->WorldPosition.y < -KWindowSize.y / 2 - 20.0f ||
-					i.PtrEntity->WorldPosition.y > +KWindowSize.y / 2 + 20.0f)
-				{
-					i.PtrEntity->Visible = false;
-					i.Dead = true;
-				}
-			}
+			CheckDeadShot(v_main_ship_shots);
 
 			time_prev = time_now;
 		}
