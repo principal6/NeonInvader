@@ -193,11 +193,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		entity_main_ship->Visible = false;
 	}
 
-	CEntity* entity_title{ entity_pool.AddEntity() };
+	CObject2D obj_title{ &directx };
 	{
-		entity_title->SetTexture(texture_title);
-		entity_title->CreateRectangle(texture_title->GetTextureSize());
-		entity_title->Sampler = ESampler::Linear;
+		obj_title.SetTexture(texture_title);
+		obj_title.CreateRectangle(texture_title->GetTextureSize());
+		obj_title.Sampler = ESampler::Linear;
 	}
 
 	steady_clock clock{};
@@ -242,85 +242,83 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			vs->Use();
 			ps->Use();
 
+			delta_time = 0.000'000'001f * (time_now - time_prev);
+			time_now_microsec = time_now / 1'000;
+
+			bool turn_left{}, turn_right{}, move_forward{}, move_backward{}, move_left{}, move_right{};
+			if (GetAsyncKeyState(VK_RIGHT) < 0) turn_right = true;
+			if (GetAsyncKeyState(VK_LEFT) < 0) turn_left = true;
+			if (GetAsyncKeyState(VK_UP) < 0) move_forward = true;
+			if (GetAsyncKeyState(VK_DOWN) < 0) move_backward = true;
+			if (keys['W']) move_forward = true;
+			if (keys['S']) move_backward = true;
+			if (keys['A']) move_left = true;
+			if (keys['D']) move_right = true;
+
+			if (time_now_microsec >= timer_movement + 3'000)
+			{
+				if (turn_left) entity_main_ship->RotationAngle += 0.02f;
+				if (turn_right) entity_main_ship->RotationAngle -= 0.02f;
+				if (move_forward) entity_main_ship->MoveForward(0.7f);
+				if (move_backward) entity_main_ship->MoveBackward(0.4f);
+				if (move_left) entity_main_ship->MoveLeft(0.4f);
+				if (move_right) entity_main_ship->MoveRight(0.4f);
+
+				if (entity_main_ship->RotationAngle >= XM_2PI) entity_main_ship->RotationAngle = 0.0f;
+				if (entity_main_ship->RotationAngle <= -XM_2PI) entity_main_ship->RotationAngle = 0.0f;
+				entity_main_ship->WorldPosition.x = max(entity_main_ship->WorldPosition.x, -KWindowSize.x / 2);
+				entity_main_ship->WorldPosition.x = min(entity_main_ship->WorldPosition.x, KWindowSize.x / 2);
+				entity_main_ship->WorldPosition.y = max(entity_main_ship->WorldPosition.y, -KWindowSize.y / 2);
+				entity_main_ship->WorldPosition.y = min(entity_main_ship->WorldPosition.y, KWindowSize.y / 2);
+
+				timer_movement = time_now_microsec;
+			}
+
+			if (GetAsyncKeyState(VK_SPACE) < 0)
+			{
+				if (time_now_microsec >= timer_shot + 300'000)
+				{
+					SpawnShot(max_shots, v_main_ship_shots, shot_speed, entity_main_ship);
+
+					timer_shot = time_now_microsec;
+				}
+			}
+
+			if (time_now_microsec >= timer_animation + 1'500)
+			{
+				SpawnEnemy(max_enemies, v_enemy_ships, 10, 100.0f, entity_main_ship);
+
+				timer_animation = time_now_microsec;
+			}
+
+			directx.BeginRendering(KClearColor);
+
+			entity_pool.ApplyPhysics(delta_time);
+			entity_pool.DrawEntitiesInAddedOrder();
+
+			directx.RenderText(L"Delta Time: " + to_wstring(delta_time) + L" ÃÊ", XMFLOAT2(0, 0), Colors::YellowGreen);
+			directx.RenderText(L"Rotation angle: " + to_wstring(entity_main_ship->RotationAngle), XMFLOAT2(0, 15), Colors::LimeGreen);
+
 			if (should_show_title)
 			{
 				if (GetAsyncKeyState(VK_RETURN) < 0)
 				{
 					should_show_title = false;
-					entity_title->Visible = false;
 					entity_main_ship->Visible = true;
-				}
 
-				directx.BeginRendering(KClearColor);
-
-				entity_pool.DrawEntitiesInAddedOrder();
-
-				directx.EndRendering();
-			}
-			else
-			{
-				delta_time = 0.000'000'001f * (time_now - time_prev);
-				time_now_microsec = time_now / 1'000;
-
-				bool turn_left{}, turn_right{}, move_forward{}, move_backward{}, move_left{}, move_right{};
-				if (GetAsyncKeyState(VK_RIGHT) < 0) turn_right = true;
-				if (GetAsyncKeyState(VK_LEFT) < 0) turn_left = true;
-				if (GetAsyncKeyState(VK_UP) < 0) move_forward = true;
-				if (GetAsyncKeyState(VK_DOWN) < 0) move_backward = true;
-				if (keys['W']) move_forward = true;
-				if (keys['S']) move_backward = true;
-				if (keys['A']) move_left = true;
-				if (keys['D']) move_right = true;
-
-				if (time_now_microsec >= timer_movement + 3'000)
-				{
-					if (turn_left) entity_main_ship->RotationAngle += 0.02f;
-					if (turn_right) entity_main_ship->RotationAngle -= 0.02f;
-					if (move_forward) entity_main_ship->MoveForward(0.7f);
-					if (move_backward) entity_main_ship->MoveBackward(0.4f);
-					if (move_left) entity_main_ship->MoveLeft(0.4f);
-					if (move_right) entity_main_ship->MoveRight(0.4f);
-
-					if (entity_main_ship->RotationAngle >= XM_2PI) entity_main_ship->RotationAngle = 0.0f;
-					if (entity_main_ship->RotationAngle <= -XM_2PI) entity_main_ship->RotationAngle = 0.0f;
-					entity_main_ship->WorldPosition.x = max(entity_main_ship->WorldPosition.x, -KWindowSize.x / 2);
-					entity_main_ship->WorldPosition.x = min(entity_main_ship->WorldPosition.x, KWindowSize.x / 2);
-					entity_main_ship->WorldPosition.y = max(entity_main_ship->WorldPosition.y, -KWindowSize.y / 2);
-					entity_main_ship->WorldPosition.y = min(entity_main_ship->WorldPosition.y, KWindowSize.y / 2);
-
-					timer_movement = time_now_microsec;
-				}
-
-				if (GetAsyncKeyState(VK_SPACE) < 0)
-				{
-					if (time_now_microsec >= timer_shot + 300'000)
+					for (auto& i : v_enemy_ships)
 					{
-						SpawnShot(max_shots, v_main_ship_shots, shot_speed, entity_main_ship);
-
-						timer_shot = time_now_microsec;
+						i.Dead = true;
 					}
 				}
 
-				if (time_now_microsec >= timer_animation + 1'500)
-				{
-					SpawnEnemy(max_enemies, v_enemy_ships, 10, 100.0f, entity_main_ship);
-
-					timer_animation = time_now_microsec;
-				}
-
-				directx.BeginRendering(KClearColor);
-
-				entity_pool.ApplyPhysics(delta_time);
-				entity_pool.DrawEntitiesInAddedOrder();
-
-				directx.RenderText(L"Delta Time: " + to_wstring(delta_time) + L" ÃÊ", XMFLOAT2(0, 0), Colors::YellowGreen);
-				directx.RenderText(L"Rotation angle: " + to_wstring(entity_main_ship->RotationAngle), XMFLOAT2(0, 15), Colors::LimeGreen);
-
-				directx.EndRendering();
-
-				ClearDeadShots(v_main_ship_shots);
-				ClearEnemyOutOfBoundary(v_enemy_ships);
+				obj_title.Draw();
 			}
+
+			directx.EndRendering();
+
+			ClearDeadShots(v_main_ship_shots);
+			ClearEnemyOutOfBoundary(v_enemy_ships);
 
 			time_prev = time_now;
 		}
