@@ -15,6 +15,7 @@ public:
 	CTexture* AddSharedTexture(const string& TextureFileName);
 	CTexture* GetSharedTexture(size_t Index);
 	
+	void ApplyPhysics(float DeltaTime);
 	void DrawEntities();
 
 private:

@@ -25,6 +25,17 @@ CTexture* CEntityPool::GetSharedTexture(size_t Index)
 	return m_vSharedTextures[Index].get();
 }
 
+void CEntityPool::ApplyPhysics(float DeltaTime)
+{
+	for (auto& i : m_vEntities)
+	{
+		if (!i->Visible) continue;
+
+		i->WorldPosition.x += i->LinearVelocity.x * DeltaTime;
+		i->WorldPosition.y += i->LinearVelocity.y * DeltaTime;
+	}
+}
+
 void CEntityPool::DrawEntities()
 {
 	for (auto& i : m_vEntities)

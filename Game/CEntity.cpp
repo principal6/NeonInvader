@@ -195,3 +195,9 @@ void CEntity::MoveRight(float DistanceFactor)
 	WorldPosition.x += XMVectorGetX(vec_dir);
 	WorldPosition.y += XMVectorGetY(vec_dir);
 }
+
+void CEntity::SetLinearVelocity(const XMVECTOR& Velocity)
+{
+	LinearVelocity.x = XMVectorGetX(Velocity);
+	LinearVelocity.y = XMVectorGetY(Velocity);
+}

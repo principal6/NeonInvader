@@ -60,10 +60,12 @@ public:
 	void MoveBackward(float DistanceFactor = 1.0f);
 	void MoveLeft(float DistanceFactor = 1.0f);
 	void MoveRight(float DistanceFactor = 1.0f);
+	void SetLinearVelocity(const XMVECTOR& Velocity);
 
 public:
 	ESampler				Sampler{ ESampler::Point };
 	XMFLOAT2				WorldPosition{};
+	XMFLOAT2				LinearVelocity{};
 	float					RotationAngle{};
 	XMFLOAT2				Scalar{ 1.0f, 1.0f };
 	bool					Visible{ true };

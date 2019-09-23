@@ -3,8 +3,15 @@
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+struct SShot
+{
+	CEntity* PtrEntity{};
+	bool Dead{ true };
+};
+
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPTSTR lpCmdLine, _In_ int nShowCmd)
 {
+	static constexpr size_t KMaxShotLimit{ 20 };
 	static constexpr XMFLOAT2 KWindowSize{ 960.0f, 540.0f };
 	static constexpr float KClearColor[]{ 0.0f, 0.6f, 1.0f, 1.0f };
 	static constexpr D3D11_INPUT_ELEMENT_DESC KInputLayout[]
@@ -39,13 +46,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		entity_main_ship->Sampler = ESampler::Linear;
 	}
 
-	CEntity* entity_main_ship_shot{ entity_pool.AddEntity() };
+	vector<SShot> v_main_ship_shots{};
+	for (size_t i = 0; i < KMaxShotLimit; ++i)
 	{
-		entity_main_ship_shot->SetTexture(texture_sprite);
-		entity_main_ship_shot->CreateRectangle(XMFLOAT2(110, 40));
-		entity_main_ship_shot->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(110, 40));
-		entity_main_ship_shot->Sampler = ESampler::Linear;
-		entity_main_ship_shot->Visible = true;
+		v_main_ship_shots.emplace_back();
+		v_main_ship_shots.back().PtrEntity = entity_pool.AddEntity();
+		v_main_ship_shots.back().PtrEntity->SetTexture(texture_sprite);
+		v_main_ship_shots.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 40));
+		v_main_ship_shots.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(110, 40));
+		v_main_ship_shots.back().PtrEntity->Sampler = ESampler::Linear;
+		v_main_ship_shots.back().PtrEntity->Visible = false;
 	}
 
 	steady_clock clock{};
@@ -54,8 +64,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	long long time_now_microsec{};
 	long long timer_animation{};
 	long long timer_movement{};
+	long long timer_shot{};
 	float delta_time{};
 	bool keys[MAX_PATH]{};
+	size_t max_shots{ 3 };
 	while (true)
 	{
 		static MSG msg{};
@@ -86,10 +98,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			time_now_microsec = time_now / 1'000;
 
 			bool turn_left{}, turn_right{}, move_forward{}, move_backward{}, move_left{}, move_right{};
-			if (GetKeyState(VK_RIGHT) < 0) turn_right = true;
-			if (GetKeyState(VK_LEFT) < 0) turn_left = true;
-			if (GetKeyState(VK_UP) < 0) move_forward = true;
-			if (GetKeyState(VK_DOWN) < 0) move_backward = true;
+			if (GetAsyncKeyState(VK_RIGHT) < 0) turn_right = true;
+			if (GetAsyncKeyState(VK_LEFT) < 0) turn_left = true;
+			if (GetAsyncKeyState(VK_UP) < 0) move_forward = true;
+			if (GetAsyncKeyState(VK_DOWN) < 0) move_backward = true;
 			if (keys['W']) move_forward = true;
 			if (keys['S']) move_backward = true;
 			if (keys['A']) move_left = true;
@@ -97,12 +109,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			if (time_now_microsec >= timer_movement + 3'000)
 			{
-				if (turn_left) entity_main_ship->RotationAngle += 0.03f;
-				if (turn_right) entity_main_ship->RotationAngle -= 0.03f;
-				if (move_forward) entity_main_ship->MoveForward(0.8f);
-				if (move_backward) entity_main_ship->MoveBackward(0.5f);
-				if (move_left) entity_main_ship->MoveLeft(0.5f);
-				if (move_right) entity_main_ship->MoveRight(0.5f);
+				if (turn_left) entity_main_ship->RotationAngle += 0.02f;
+				if (turn_right) entity_main_ship->RotationAngle -= 0.02f;
+				if (move_forward) entity_main_ship->MoveForward(0.7f);
+				if (move_backward) entity_main_ship->MoveBackward(0.4f);
+				if (move_left) entity_main_ship->MoveLeft(0.4f);
+				if (move_right) entity_main_ship->MoveRight(0.4f);
 
 				if (entity_main_ship->RotationAngle >= XM_2PI) entity_main_ship->RotationAngle = 0.0f;
 				if (entity_main_ship->RotationAngle <= -XM_2PI) entity_main_ship->RotationAngle = 0.0f;
@@ -112,6 +124,36 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				entity_main_ship->WorldPosition.y = min(entity_main_ship->WorldPosition.y, KWindowSize.y / 2);
 
 				timer_movement = time_now_microsec;
+			}
+			
+			if (GetAsyncKeyState(VK_SPACE) < 0)
+			{
+				if (time_now_microsec >= timer_shot + 300'000)
+				{
+					for (size_t i = 0; i < max_shots; ++i)
+					{
+						SShot& shot{ v_main_ship_shots[i] };
+						if (shot.Dead)
+						{
+							XMMATRIX mat_rot{ XMMatrixRotationZ(entity_main_ship->RotationAngle) };
+							XMVECTOR vec{ XMVector2TransformNormal({ 0.0f, 1.0f, 0.0f, 0.0f }, mat_rot) };
+
+							shot.PtrEntity->RotationAngle = entity_main_ship->RotationAngle;
+							shot.PtrEntity->SetLinearVelocity(vec * 300.0f);
+
+							vec *= 30.0f;
+							shot.PtrEntity->WorldPosition.x = entity_main_ship->WorldPosition.x + XMVectorGetX(vec);
+							shot.PtrEntity->WorldPosition.y = entity_main_ship->WorldPosition.y + XMVectorGetY(vec);
+
+							shot.PtrEntity->Visible = true;
+							shot.Dead = false;
+							
+							break;
+						}
+					}
+
+					timer_shot = time_now_microsec;
+				}
 			}
 
 			if (time_now_microsec >= timer_animation + 1'500)
@@ -124,12 +166,25 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			vs->Use();
 			ps->Use();
 
+			entity_pool.ApplyPhysics(delta_time);
 			entity_pool.DrawEntities();
 
 			directx.RenderText(L"Delta Time: " + to_wstring(delta_time) + L" ÃÊ", XMFLOAT2(0, 0), Colors::LimeGreen);
 			directx.RenderText(L"Rotation angle: " + to_wstring(entity_main_ship->RotationAngle), XMFLOAT2(0, 15), Colors::LimeGreen);
 
 			directx.EndRendering();
+
+			for (auto& i : v_main_ship_shots)
+			{
+				if (i.PtrEntity->WorldPosition.x < -KWindowSize.x / 2 - 20.0f ||
+					i.PtrEntity->WorldPosition.x > +KWindowSize.x / 2 + 20.0f ||
+					i.PtrEntity->WorldPosition.y < -KWindowSize.y / 2 - 20.0f ||
+					i.PtrEntity->WorldPosition.y > +KWindowSize.y / 2 + 20.0f)
+				{
+					i.PtrEntity->Visible = false;
+					i.Dead = true;
+				}
+			}
 
 			time_prev = time_now;
 		}
