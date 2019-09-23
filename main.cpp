@@ -1,5 +1,6 @@
 #include "Game\CEntityPool.h"
 #include "Helper\CTexturePool.h"
+#include "Helper\CASCIIRenderer.h"
 
 static constexpr float KEnemySpawnBoundary{ 30.0f };
 static constexpr size_t KMaxShotLimit{ 20 };
@@ -200,6 +201,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		obj_title.Sampler = ESampler::Linear;
 	}
 
+	CASCIIRenderer ascii_renderer{ &directx };
+	ascii_renderer.Create(100, KAssetDir, "charset_info.txt", 0.6f);
+
 	steady_clock clock{};
 	long long time_prev{ clock.now().time_since_epoch().count() };
 	long long time_now{};
@@ -296,9 +300,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			entity_pool.ApplyPhysics(delta_time);
 			entity_pool.DrawEntitiesInAddedOrder();
 
-			directx.RenderText(L"Delta Time: " + to_wstring(delta_time) + L" ÃÊ", XMFLOAT2(0, 0), Colors::YellowGreen);
-			directx.RenderText(L"Rotation angle: " + to_wstring(entity_main_ship->RotationAngle), XMFLOAT2(0, 15), Colors::LimeGreen);
-
 			if (should_show_title)
 			{
 				if (GetAsyncKeyState(VK_RETURN) < 0)
@@ -314,6 +315,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 				obj_title.Draw();
 			}
+			
+			ascii_renderer.RenderText("Delta time: " + to_string(delta_time) + "s",
+				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2));
+			ascii_renderer.RenderText("Rotation angle: " + to_string(entity_main_ship->RotationAngle),
+				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 30.0f));
+			ascii_renderer.RenderText("Enemy: 5/" + to_string(max_enemies),
+				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 60.0f));
 
 			directx.EndRendering();
 

@@ -54,6 +54,9 @@
     <ClCompile Include="Helper\CTexturePool.cpp">
       <Filter>Helper</Filter>
     </ClCompile>
+    <ClCompile Include="Helper\CASCIIRenderer.cpp">
+      <Filter>Helper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Helper\CDirectX.h">
@@ -145,6 +148,9 @@
     </ClInclude>
     <ClInclude Include="Helper\CTexturePool.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\CASCIIRenderer.h">
+      <Filter>Helper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

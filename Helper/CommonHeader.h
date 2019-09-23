@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <windows.h>
 #include <cassert>
 #include <vector>
@@ -18,12 +19,16 @@
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
+using std::ifstream;
 using std::vector;
 using std::unique_ptr;
 using std::make_unique;
 using std::string;
 using std::wstring;
+using std::to_string;
 using std::to_wstring;
+using std::stoi;
+using std::stof;
 using std::chrono::steady_clock;
 using std::unordered_map;
 
