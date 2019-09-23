@@ -63,14 +63,20 @@ void CObject2D::CreateRectangle(const XMFLOAT2& RectangleSize, bool IsDynamic)
 	Create(vertices, indices, IsDynamic);
 }
 
+void CObject2D::SetTexture(CTexture* SharedTexture)
+{
+	assert(m_PtrSharedTexture = SharedTexture);
+
+	m_TextureSize = m_PtrSharedTexture->GetTextureSize();
+}
+
 void CObject2D::SetRectangleUVRange(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip)
 {
-	auto texture_size{ m_PtrSharedTexture->GetTextureSize() };
 	XMFLOAT2 OffsetUV{}, SizeUV{};
-	OffsetUV.x = OffsetInTexture.x / texture_size.x;
-	OffsetUV.y = OffsetInTexture.y / texture_size.y;
-	SizeUV.x = SizeInTexture.x / texture_size.x;
-	SizeUV.y = SizeInTexture.y / texture_size.y;
+	OffsetUV.x = OffsetInTexture.x / m_TextureSize.x;
+	OffsetUV.y = OffsetInTexture.y / m_TextureSize.y;
+	SizeUV.x = SizeInTexture.x / m_TextureSize.x;
+	SizeUV.y = SizeInTexture.y / m_TextureSize.y;
 
 	m_Vertices[3].TexCoord = m_Vertices[2].TexCoord =
 		m_Vertices[1].TexCoord = m_Vertices[0].TexCoord = OffsetUV;
@@ -117,11 +123,6 @@ void CObject2D::UpdateVertexBuffer()
 		memcpy(mapped_subresource.pData, &m_Vertices[0], sizeof(SVertex2D) * m_Vertices.size());
 		m_DirectX->m_DeviceContext->Unmap(m_VertexBuffer.Get(), 0);
 	}
-}
-
-void CObject2D::SetTexture(CTexture* SharedTexture)
-{
-	m_PtrSharedTexture = SharedTexture;
 }
 
 void CObject2D::Draw()

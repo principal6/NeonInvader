@@ -42,10 +42,9 @@ public:
 	virtual void Create(const vector<SVertex2D>& vVertices, const vector<SIndex>& vIndices, bool IsDynamic = true);
 	virtual void CreateRectangle(const XMFLOAT2& RectangleSize, bool IsDynamic = true);
 
+	virtual void SetTexture(CTexture* SharedTexture);
 	virtual void SetRectangleUVRange(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip = ERenderFlipOption::None);
 	virtual void SetRectangleUVRangeAndSize(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip = ERenderFlipOption::None);
-
-	virtual void SetTexture(CTexture* SharedTexture);
 
 	virtual void Draw();
 
@@ -71,6 +70,7 @@ protected:
 	vector<SIndex>			m_Indices{};
 
 	CTexture*				m_PtrSharedTexture{};
+	XMFLOAT2				m_TextureSize{};
 
 	XMMATRIX				m_MatrixWorld{ XMMatrixIdentity() };
 };
