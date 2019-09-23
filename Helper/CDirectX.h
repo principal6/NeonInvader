@@ -7,6 +7,7 @@
 
 class CDirectX
 {
+	friend class CEntity;
 	friend class CEntityPool;
 
 public:
@@ -24,6 +25,10 @@ public:
 	void BeginRendering(const float (&ClearColorArray)[4]);
 	void RenderText(const wstring& Text, const XMFLOAT2& Position, const FXMVECTOR& Color);
 	void EndRendering();
+
+public:
+	ID3D11Device* GetDevicePtr() { return m_Device.Get(); }
+	ID3D11DeviceContext* GetDeviceContextPtr() { return m_DeviceContext.Get(); }
 
 private:
 	void CreateWin32Window(LPCTSTR Title, WNDPROC WndProc, int nShowCmd);

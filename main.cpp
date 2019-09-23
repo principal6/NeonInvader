@@ -1,5 +1,5 @@
-#include "Helper\CDirectX.h"
 #include "Game\CEntityPool.h"
+#include "Helper\CTexturePool.h"
 
 static constexpr float KEnemySpawnBoundary{ 30.0f };
 static constexpr size_t KMaxShotLimit{ 20 };
@@ -147,10 +147,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CShader* vs{ directx.AddShader(EShaderType::VertexShader, L"HLSL/VertexShader.hlsl", "main", KInputLayout, ARRAYSIZE(KInputLayout)) };
 	CShader* ps{ directx.AddShader(EShaderType::PixelShader, L"HLSL/PixelShader.hlsl", "main") };
 	
+	CTexturePool texture_pool{ directx.GetDevicePtr(), directx.GetDeviceContextPtr() };
+	CTexture* texture_bg{ texture_pool.AddSharedTexture(KAssetDir + "bg_space_seamless.png") };
+	CTexture* texture_sprite{ texture_pool.AddSharedTexture(KAssetDir + "neon_space_shooter.png") };
+	CTexture* texture_title{ texture_pool.AddSharedTexture(KAssetDir + "title.png") };
+
 	CEntityPool entity_pool{ directx };
-	CTexture* texture_bg{ entity_pool.AddSharedTexture(KAssetDir + "bg_space_seamless.png") };
-	CTexture* texture_sprite{ entity_pool.AddSharedTexture(KAssetDir + "neon_space_shooter.png")};
-	CTexture* texture_title{ entity_pool.AddSharedTexture(KAssetDir + "title.png") };
 	CEntity* entity_bg{ entity_pool.AddEntity() };
 	{
 		entity_bg->SetTexture(texture_bg);
@@ -251,7 +253,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 				directx.BeginRendering(KClearColor);
 
-				entity_pool.DrawEntities();
+				entity_pool.DrawEntitiesInAddedOrder();
 
 				directx.EndRendering();
 			}
@@ -309,7 +311,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				directx.BeginRendering(KClearColor);
 
 				entity_pool.ApplyPhysics(delta_time);
-				entity_pool.DrawEntities();
+				entity_pool.DrawEntitiesInAddedOrder();
 
 				directx.RenderText(L"Delta Time: " + to_wstring(delta_time) + L" ÃÊ", XMFLOAT2(0, 0), Colors::YellowGreen);
 				directx.RenderText(L"Rotation angle: " + to_wstring(entity_main_ship->RotationAngle), XMFLOAT2(0, 15), Colors::LimeGreen);

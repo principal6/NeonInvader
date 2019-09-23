@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Helper/CDirectX.h"
 #include "../Helper/CObject2D.h"
 #include "../Helper/CTexture.h"
 
@@ -37,7 +38,7 @@ class CEntity
 	friend class CEntityPool;
 
 public:
-	CEntity(ID3D11Device* Device, ID3D11DeviceContext* DeviceContext) : m_Device{ Device }, m_DeviceContext{ DeviceContext } {};
+	CEntity(CDirectX& DirectX) : m_DirectX{ &DirectX } {};
 	~CEntity() {};
 
 	void CreateRectangle(const XMFLOAT2& RectangleSize);
@@ -74,8 +75,7 @@ private:
 	void UpdateAnimationFrame();
 
 private:
-	ID3D11Device*					m_Device{};
-	ID3D11DeviceContext*			m_DeviceContext{};
+	CDirectX*						m_DirectX{};
 
 	unique_ptr<CObject2D>			m_Object2D{};
 	CTexture*						m_PtrSharedTexture{};

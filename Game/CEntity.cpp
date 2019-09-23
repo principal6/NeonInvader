@@ -4,7 +4,7 @@ void CEntity::CreateRectangle(const XMFLOAT2& RectangleSize)
 {
 	if (m_Object2D) return;
 
-	m_Object2D = make_unique<CObject2D>(m_Device, m_DeviceContext);
+	m_Object2D = make_unique<CObject2D>(m_DirectX->m_Device.Get(), m_DirectX->m_DeviceContext.Get());
 
 	float half_width{ RectangleSize.x / 2 };
 	float half_height{ RectangleSize.y / 2 };
@@ -137,6 +137,15 @@ void CEntity::UpdateAnimationFrame()
 
 void CEntity::Draw()
 {
+	m_DirectX->UseSampler(Sampler);
+
+	XMMATRIX Translation{ XMMatrixTranspose(XMMatrixTranslation(WorldPosition.x, WorldPosition.y, 0.0f)) };
+	XMMATRIX Rotation{ XMMatrixTranspose(XMMatrixRotationZ(RotationAngle)) };
+	XMMATRIX Scaling{ XMMatrixTranspose(XMMatrixScaling(Scalar.x, Scalar.y, 1.0f)) };
+	m_MatrixWorld = Translation * Rotation * Scaling;
+
+	m_DirectX->m_CBWorld->Update(&m_MatrixWorld);
+
 	if (m_PtrSharedTexture)
 	{
 		m_PtrSharedTexture->Use();

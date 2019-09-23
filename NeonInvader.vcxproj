@@ -131,6 +131,7 @@
     <ClCompile Include="Helper\CObject2D.cpp" />
     <ClCompile Include="Helper\CShader.cpp" />
     <ClCompile Include="Helper\CTexture.cpp" />
+    <ClCompile Include="Helper\CTexturePool.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +164,7 @@
     <ClInclude Include="Helper\CommonHeader.h" />
     <ClInclude Include="Helper\CShader.h" />
     <ClInclude Include="Helper\CTexture.h" />
+    <ClInclude Include="Helper\CTexturePool.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="HLSL\PixelShader.hlsl">
