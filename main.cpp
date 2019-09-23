@@ -202,7 +202,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 
 	CASCIIRenderer ascii_renderer{ &directx };
-	ascii_renderer.Create(100, KAssetDir, "charset_info.txt", 0.6f);
+	ascii_renderer.Create(100, KAssetDir, "charset_d2coding_20_info.txt", 0.8f);
 
 	steady_clock clock{};
 	long long time_prev{ clock.now().time_since_epoch().count() };

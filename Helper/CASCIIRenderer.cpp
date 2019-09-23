@@ -69,6 +69,8 @@ void CASCIIRenderer::ParseCharsetInfo(const string& CharsetInfoFileName)
 		default:
 			for (int i = 0; i < m_CharacterSetInfo.NumCols; ++i)
 			{
+				if (sline.length() <= (size_t)3 * i) continue;
+
 				int id{ stoi(sline.substr((size_t)3 * i, 3)) };
 				m_CharacterSetInfo.ASCIIMap[id] = character_index;
 
