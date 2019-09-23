@@ -2,17 +2,8 @@
 
 #include "../Helper/CDirectX.h"
 #include "../Helper/CObject2D.h"
-#include "../Helper/CTexture.h"
 
 static constexpr size_t KAnimationIndexInvalid{ std::string::npos };
-
-enum ERenderFlipOption
-{
-	None,
-	Horizontal,
-	Vertical,
-	HorizontalAndVertical
-};
 
 struct SAnimationFrame
 {
@@ -33,28 +24,19 @@ struct SAnimation
 	vector<SAnimationFrame> vFrames{};
 };
 
-class CEntity
+class CEntity final : public CObject2D
 {
 	friend class CEntityPool;
 
 public:
-	CEntity(CDirectX& DirectX) : m_DirectX{ &DirectX } {};
-	~CEntity() {};
-
-	void CreateRectangle(const XMFLOAT2& RectangleSize);
-
-	void SetTexture(CTexture* SharedTexture);
-	
-	void SetRectangleUVRange(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip = ERenderFlipOption::None);
-	void SetRectangleUVRangeAndSize(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip = ERenderFlipOption::None);
+	CEntity(CDirectX* DirectX) : CObject2D(DirectX) {}
+	~CEntity() {}
 
 	SAnimation* AddAnimation(const string& AnimationName, size_t TickPerFrame = 30);
 	void SetAnimation(size_t AnimationIndex);
 	void SetAnimation(const string& AnimationName);
 	void SetAnimationFlipping(ERenderFlipOption Flip);
 	void Animate();
-
-	void Draw();
 
 public:
 	void MoveForward(float DistanceFactor = 1.0f);
@@ -64,24 +46,13 @@ public:
 	void SetLinearVelocity(const XMVECTOR& Velocity);
 
 public:
-	ESampler				Sampler{ ESampler::Point };
-	XMFLOAT2				WorldPosition{};
-	XMFLOAT2				LinearVelocity{};
-	float					RotationAngle{};
-	XMFLOAT2				Scalar{ 1.0f, 1.0f };
-	bool					Visible{ true };
+	XMFLOAT2	LinearVelocity{};
+	bool		Visible{ true };
 
 private:
 	void UpdateAnimationFrame();
 
 private:
-	CDirectX*						m_DirectX{};
-
-	unique_ptr<CObject2D>			m_Object2D{};
-	CTexture*						m_PtrSharedTexture{};
-
-	XMMATRIX						m_MatrixWorld{ XMMatrixIdentity() };
-
 	vector<unique_ptr<SAnimation>>	m_vAnimations{};
 	size_t							m_AnimationIndex{ KAnimationIndexInvalid };
 	size_t							m_AnimationTick{};

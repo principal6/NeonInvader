@@ -7,8 +7,7 @@
 
 class CDirectX
 {
-	friend class CEntity;
-	friend class CEntityPool;
+	friend class CObject2D;
 
 public:
 	CDirectX(HINSTANCE hInstance, const XMFLOAT2& WindowSize) : m_hInstance{ hInstance }, m_WindowSize{ WindowSize } {};

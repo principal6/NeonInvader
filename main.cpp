@@ -152,7 +152,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CTexture* texture_sprite{ texture_pool.AddSharedTexture(KAssetDir + "neon_space_shooter.png") };
 	CTexture* texture_title{ texture_pool.AddSharedTexture(KAssetDir + "title.png") };
 
-	CEntityPool entity_pool{ directx };
+	CEntityPool entity_pool{ &directx };
 	CEntity* entity_bg{ entity_pool.AddEntity() };
 	{
 		entity_bg->SetTexture(texture_bg);

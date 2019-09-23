@@ -5,7 +5,7 @@
 class CEntityPool
 {
 public:
-	CEntityPool(CDirectX& DirectX) : m_DirectX{ &DirectX } {};
+	CEntityPool(CDirectX* DirectX) : m_DirectX{ DirectX } {};
 	~CEntityPool() {};
 
 	CEntity* AddEntity();

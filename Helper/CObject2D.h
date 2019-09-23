@@ -1,6 +1,17 @@
 #pragma once
 
 #include "CommonHeader.h"
+#include "../Helper/CTexture.h"
+
+class CDirectX;
+
+enum ERenderFlipOption
+{
+	None,
+	Horizontal,
+	Vertical,
+	HorizontalAndVertical
+};
 
 struct SVertex2D
 {
@@ -24,22 +35,31 @@ struct SIndex
 
 class CObject2D
 {
-	friend class CEntity;
+public:
+	CObject2D(CDirectX* DirectX) : m_DirectX{ DirectX } { assert(m_DirectX); }
+	~CObject2D() {}
+
+	virtual void Create(const vector<SVertex2D>& vVertices, const vector<SIndex>& vIndices, bool IsDynamic = true);
+	virtual void CreateRectangle(const XMFLOAT2& RectangleSize, bool IsDynamic = true);
+
+	virtual void SetRectangleUVRange(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip = ERenderFlipOption::None);
+	virtual void SetRectangleUVRangeAndSize(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip = ERenderFlipOption::None);
+
+	virtual void SetTexture(CTexture* SharedTexture);
+
+	virtual void Draw();
+
+protected:
+	virtual void UpdateVertexBuffer();
 
 public:
-	CObject2D(ID3D11Device* Device, ID3D11DeviceContext* DeviceContext) : m_Device{ Device }, m_DeviceContext{ DeviceContext }  {};
-	~CObject2D() {};
+	ESampler				Sampler{ ESampler::Point };
+	XMFLOAT2				WorldPosition{};
+	float					RotationAngle{};
+	XMFLOAT2				Scalar{ 1.0f, 1.0f };
 
-	void CreateStatic(const vector<SVertex2D>& vVertices, const vector<SIndex>& vIndices);
-	void CreateDynamic(const vector<SVertex2D>& vVertices, const vector<SIndex>& vIndices);
-
-	void UpdateVertexBuffer();
-
-	void Draw();
-
-private:
-	ID3D11Device*			m_Device{};
-	ID3D11DeviceContext*	m_DeviceContext{};
+protected:
+	CDirectX*				m_DirectX{};
 
 	ComPtr<ID3D11Buffer>	m_VertexBuffer{};
 	ComPtr<ID3D11Buffer>	m_IndexBuffer{};
@@ -49,4 +69,8 @@ private:
 
 	vector<SVertex2D>		m_Vertices{};
 	vector<SIndex>			m_Indices{};
+
+	CTexture*				m_PtrSharedTexture{};
+
+	XMMATRIX				m_MatrixWorld{ XMMatrixIdentity() };
 };
