@@ -90,6 +90,8 @@ private:
 
 	void SpawnEffect(const XMFLOAT2& Position, float Scalar = 1.0f);
 
+	void Reload();
+
 	void ProcessCollision();
 	void RepositionEnemiesOutOfScreen();
 	void OrientEntityTowardsMainEntity(CEntity* PtrEntity, float SpeedFactor, bool GraduallyOrient = false, float RotationSpeedFactor = 1.0f);

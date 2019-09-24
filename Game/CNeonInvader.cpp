@@ -266,15 +266,19 @@ void CNeonInvader::SetStage(int StageID)
 	m_CurrentStageItemSpawningCount = 0;
 }
 
+void CNeonInvader::Reload()
+{
+	if (m_CurrentReloadIntervalCounter < m_CurrentReloadInterval)
+	{
+		++m_CurrentReloadIntervalCounter;
+	}
+}
+
 void CNeonInvader::SpawnMainSpriteShot()
 {
 	if (!m_GameStarted) return;
 
-	if (m_CurrentReloadIntervalCounter < m_CurrentReloadInterval)
-	{
-		++m_CurrentReloadIntervalCounter;
-		return;
-	}
+	if (m_CurrentReloadIntervalCounter < m_CurrentReloadInterval) return;
 
 	for (size_t i = 0; i < m_CurrentMaxShotCount; ++i)
 	{
@@ -355,6 +359,8 @@ void CNeonInvader::ExecuteGame()
 
 	if (m_GameStarted)
 	{
+		Reload();
+
 		ProcessCollision();
 
 		ClearDeadShots();
