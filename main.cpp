@@ -31,6 +31,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CTexture* texture_completed{ texture_pool.AddSharedTexture(KAssetDir + "completed.png") };
 	CTexture* texture_explosion{ texture_pool.AddSharedTexture(KAssetDir + "explosion_196x190_by_Bleed.png") };
 	CTexture* texture_guideline{ texture_pool.AddSharedTexture(KAssetDir + "guideline.png") };
+	CTexture* texture_itemset{ texture_pool.AddSharedTexture(KAssetDir + "itemset.png") };
 
 	CNeonInvader neon_invader{ KWindowSize };
 
@@ -76,6 +77,27 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		v_enemy_ships.back().PtrEntity->Visible = false;
 
 		entity_pool.AddEnemyEntity(v_enemy_ships.back().PtrEntity);
+	}
+
+	vector<SItem> v_items{};
+	for (size_t i = 0; i < neon_invader.KMaxItemLimit; ++i)
+	{
+		v_items.emplace_back();
+
+		v_items.back().Dead = true;
+		CEntity*& entity{ v_items.back().PtrEntity };
+		{
+			entity = entity_pool.CreateEntity();
+
+			entity->SetTexture(texture_itemset);
+			entity->CreateRectangle(XMFLOAT2(60, 60));
+			entity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
+			entity->SetCollisionBox(XMFLOAT2(26, 26));
+			entity->Sampler = ESampler::Linear;
+			entity->Visible = false;
+		}
+
+		entity_pool.AddItemEntity(entity);
 	}
 
 	CEntity* entity_main_ship{ entity_pool.CreateEntity() };
@@ -130,8 +152,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CStageSetLoader stage_set_loader{};
 	stage_set_loader.LoadStageSetFromFile(KAssetDir + "stage_set.txt");
 
-	neon_invader.SetGameData(stage_set_loader.GetStageSetData(), entity_main_ship, v_enemy_ships, v_main_ship_shots, v_enemy_shots, v_effects);
-
+	neon_invader.SetGameData(
+		stage_set_loader.GetStageSetData(), entity_main_ship, v_enemy_ships, v_main_ship_shots, v_enemy_shots, v_effects, v_items);
 
 	CObject2D obj_bg{ &directx };
 	{
@@ -178,9 +200,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	long long time_now_microsec{};
 	long long timer_animation{};
 	long long timer_movement{};
-	long long timer_shot{};
 	long long timer_game{};
 	long long timer_reorientation{};
+	long long timer_item_spawning{};
 	float delta_time{};
 	bool keys[MAX_PATH]{};
 
@@ -189,7 +211,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	bool should_show_completed{ false };
 	bool should_draw_guildeline{ false };
 	int main_ship_initial_life{ 3 };
-	float shot_speed{ 400.0f };
 
 	while (true)
 	{
@@ -254,11 +275,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			if (GetAsyncKeyState(VK_SPACE) < 0)
 			{
-				if (time_now_microsec >= timer_shot + 300'000)
+				if (time_now_microsec >= timer_game + 500)
 				{
-					neon_invader.SpawnMainSpriteShot(shot_speed);
-
-					timer_shot = time_now_microsec;
+					neon_invader.SpawnMainSpriteShot();
 				}
 			}
 
@@ -336,9 +355,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			directx.EndRendering();
 
+			if (time_now_microsec >= timer_item_spawning + 2'000'000)
+			{
+				neon_invader.SpawnItem();
+
+				timer_item_spawning = time_now_microsec;
+			}
+			
 			if (time_now_microsec >= timer_reorientation + 5'000)
 			{
 				neon_invader.ReorientEnemies();
+				neon_invader.ReorientItems();
 
 				timer_reorientation = time_now_microsec;
 			}

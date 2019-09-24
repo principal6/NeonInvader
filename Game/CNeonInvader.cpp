@@ -8,7 +8,7 @@ void CNeonInvader::InitGame(int Life)
 }
 
 void CNeonInvader::SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
-	vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects) noexcept
+	vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects, vector<SItem>& vItems) noexcept
 {
 	m_PtrStageSet = &StageSetData;
 	m_PtrMainSprite = EntityMainSprite;
@@ -16,36 +16,51 @@ void CNeonInvader::SetGameData(SStageSetData& StageSetData, CEntity* EntityMainS
 	m_PtrVMainSpriteShots = &vMainSpriteShots;
 	m_PtrVEnemyShots = &vEnemyShots;
 	m_PtrVEffecs = &vEffects;
+	m_PtrVItems = &vItems;
 
 	m_MaxStage = (int)StageSetData.vStages.size() - 1;
 }
 
-void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy)
+int CNeonInvader::PositionEntityInsideScreen(CEntity* PtrEntity, int FromDirection)
 {
-	int direction{ rand() % 4 };
+	int direction{};
+	if (FromDirection < 0)
+	{
+		direction = rand() % 4;
+	}
+	else
+	{
+		direction = min(FromDirection, 3);
+	}
 	switch (direction)
 	{
 	case 0:
-		Enemy.PtrEntity->WorldPosition.x = ((float)(rand() % 101) / 100.0f) * m_WindowSize.x - (m_WindowSize.x / 2);
-		Enemy.PtrEntity->WorldPosition.y = -m_WindowSize.y / 2 - KEnemySpawnBoundary;
+		PtrEntity->WorldPosition.x = ((float)(rand() % 101) / 100.0f) * m_WindowSize.x - (m_WindowSize.x / 2);
+		PtrEntity->WorldPosition.y = -m_WindowSize.y / 2 - KScreenSpawnBoundary;
 		break;
 	case 1:
-		Enemy.PtrEntity->WorldPosition.x = -m_WindowSize.x / 2 - KEnemySpawnBoundary;
-		Enemy.PtrEntity->WorldPosition.y = ((float)(rand() % 101) / 100.0f) * m_WindowSize.y - (m_WindowSize.y / 2);
+		PtrEntity->WorldPosition.x = -m_WindowSize.x / 2 - KScreenSpawnBoundary;
+		PtrEntity->WorldPosition.y = ((float)(rand() % 101) / 100.0f) * m_WindowSize.y - (m_WindowSize.y / 2);
 		break;
 	case 2:
-		Enemy.PtrEntity->WorldPosition.x = ((float)(rand() % 101) / 100.0f) * m_WindowSize.x - (m_WindowSize.x / 2);
-		Enemy.PtrEntity->WorldPosition.y = +m_WindowSize.y / 2 + KEnemySpawnBoundary;
+		PtrEntity->WorldPosition.x = ((float)(rand() % 101) / 100.0f) * m_WindowSize.x - (m_WindowSize.x / 2);
+		PtrEntity->WorldPosition.y = +m_WindowSize.y / 2 + KScreenSpawnBoundary;
 		break;
 	case 3:
-		Enemy.PtrEntity->WorldPosition.x = +m_WindowSize.x / 2 + KEnemySpawnBoundary;
-		Enemy.PtrEntity->WorldPosition.y = ((float)(rand() % 101) / 100.0f) * m_WindowSize.y - (m_WindowSize.y / 2);
+		PtrEntity->WorldPosition.x = +m_WindowSize.x / 2 + KScreenSpawnBoundary;
+		PtrEntity->WorldPosition.y = ((float)(rand() % 101) / 100.0f) * m_WindowSize.y - (m_WindowSize.y / 2);
 		break;
 	default:
 		break;
 	}
 
-	OrientEnemy(Enemy, true);
+	return direction;
+}
+
+void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy)
+{
+	PositionEntityInsideScreen(Enemy.PtrEntity);
+	OrientEntityTowardsMainEntity(Enemy.PtrEntity, Enemy.SpeedFactor, true);
 }
 
 void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, int ShotInterval, float SpeedFactor)
@@ -139,27 +154,27 @@ void CNeonInvader::RepositionEnemiesOutOfScreen()
 {
 	for (auto& enemy : *m_PtrVEnemies)
 	{
-		if (enemy.PtrEntity->WorldPosition.x < -m_WindowSize.x / 2 - KEnemySpawnBoundary ||
-			enemy.PtrEntity->WorldPosition.x > +m_WindowSize.x / 2 + KEnemySpawnBoundary ||
-			enemy.PtrEntity->WorldPosition.y < -m_WindowSize.y / 2 - KEnemySpawnBoundary ||
-			enemy.PtrEntity->WorldPosition.y > +m_WindowSize.y / 2 + KEnemySpawnBoundary)
+		if (enemy.PtrEntity->WorldPosition.x < -m_WindowSize.x / 2 - KScreenSpawnBoundary ||
+			enemy.PtrEntity->WorldPosition.x > +m_WindowSize.x / 2 + KScreenSpawnBoundary ||
+			enemy.PtrEntity->WorldPosition.y < -m_WindowSize.y / 2 - KScreenSpawnBoundary ||
+			enemy.PtrEntity->WorldPosition.y > +m_WindowSize.y / 2 + KScreenSpawnBoundary)
 		{
 			PositionEnemyInsideScreen(enemy);
 		}
 	}
 }
 
-void CNeonInvader::OrientEnemy(SEnemy& Enemy, bool GraduallyOrient)
+void CNeonInvader::OrientEntityTowardsMainEntity(CEntity* PtrEntity, float SpeedFactor, bool GraduallyOrient, float RotationSpeedFactor)
 {
 	XMVECTOR up{ 0.0f, 1.0f, 0.0f, 0.0f };
-	XMVECTOR dir{ m_PtrMainSprite->WorldPosition.x - Enemy.PtrEntity->WorldPosition.x,
-			m_PtrMainSprite->WorldPosition.y - Enemy.PtrEntity->WorldPosition.y, 0.0f, 0.0f };
+	XMVECTOR dir{ m_PtrMainSprite->WorldPosition.x - PtrEntity->WorldPosition.x,
+			m_PtrMainSprite->WorldPosition.y - PtrEntity->WorldPosition.y, 0.0f, 0.0f };
 	dir = XMVector2Normalize(dir);
 
 	float cos{ XMVectorGetX(XMVector2Dot(dir, up)) };
 	float angle{ acos(cos) };
 	if (XMVectorGetX(dir) > 0) angle = XM_2PI - angle;
-	float angle_diff{ angle - Enemy.PtrEntity->RotationAngle };
+	float angle_diff{ angle - PtrEntity->RotationAngle };
 	if (angle_diff > XM_PI)
 	{
 		angle_diff -= XM_2PI;
@@ -167,17 +182,17 @@ void CNeonInvader::OrientEnemy(SEnemy& Enemy, bool GraduallyOrient)
 
 	if (GraduallyOrient)
 	{
-		Enemy.PtrEntity->RotationAngle += angle_diff  * (0.0001f * (Enemy.SpeedFactor / 3));
+		PtrEntity->RotationAngle += angle_diff  * (0.0001f * (SpeedFactor / 3) * RotationSpeedFactor);
 	}
 	else
 	{
-		Enemy.PtrEntity->RotationAngle = angle;
+		PtrEntity->RotationAngle = angle;
 	}
 
-	XMMATRIX mat_rot{ XMMatrixRotationZ(Enemy.PtrEntity->RotationAngle) };
+	XMMATRIX mat_rot{ XMMatrixRotationZ(PtrEntity->RotationAngle) };
 	up = XMVector2TransformNormal(up, mat_rot);
 
-	Enemy.PtrEntity->SetLinearVelocity(up * Enemy.SpeedFactor);
+	PtrEntity->SetLinearVelocity(up * SpeedFactor);
 }
 
 void CNeonInvader::ReorientEnemies()
@@ -186,7 +201,18 @@ void CNeonInvader::ReorientEnemies()
 	{
 		if (!enemy.Dead)
 		{
-			OrientEnemy(enemy, true);
+			OrientEntityTowardsMainEntity(enemy.PtrEntity, enemy.SpeedFactor, true);
+		}
+	}
+}
+
+void CNeonInvader::ReorientItems()
+{
+	for (auto& item : *m_PtrVItems)
+	{
+		if (!item.Dead)
+		{
+			OrientEntityTowardsMainEntity(item.PtrEntity, KItemSpeedFactor, true, 0.2f);
 		}
 	}
 }
@@ -235,11 +261,20 @@ void CNeonInvader::SetStage(int StageID)
 	{
 		SpawnEnemy(EEnemyType::Big, 4, stage->EnemyShotInterval, stage->EnemySpeedFactor * KEnemyBigSpeedFactor);
 	}
+
+	m_CurrentStageMaxItemSpawningCount = stage->MaxItemSpawningCount;
+	m_CurrentStageItemSpawningCount = 0;
 }
 
-void CNeonInvader::SpawnMainSpriteShot(float ShotSpeed)
+void CNeonInvader::SpawnMainSpriteShot()
 {
 	if (!m_GameStarted) return;
+
+	if (m_CurrentReloadIntervalCounter < m_CurrentReloadInterval)
+	{
+		++m_CurrentReloadIntervalCounter;
+		return;
+	}
 
 	for (size_t i = 0; i < m_CurrentMaxShotCount; ++i)
 	{
@@ -250,7 +285,7 @@ void CNeonInvader::SpawnMainSpriteShot(float ShotSpeed)
 			XMVECTOR vec{ XMVector2TransformNormal({ 0.0f, 1.0f, 0.0f, 0.0f }, mat_rot) };
 
 			shot.PtrEntity->RotationAngle = m_PtrMainSprite->RotationAngle;
-			shot.PtrEntity->SetLinearVelocity(vec * ShotSpeed);
+			shot.PtrEntity->SetLinearVelocity(vec * m_CurrentBulletSpeed);
 
 			vec *= 30.0f;
 			shot.PtrEntity->WorldPosition.x = m_PtrMainSprite->WorldPosition.x + XMVectorGetX(vec);
@@ -260,6 +295,38 @@ void CNeonInvader::SpawnMainSpriteShot(float ShotSpeed)
 			shot.Dead = false;
 
 			++m_CurrentShotCount;
+
+			break;
+		}
+	}
+
+	m_CurrentReloadIntervalCounter = 0;
+}
+
+void CNeonInvader::SpawnItem()
+{
+	if (!m_GameStarted) return;
+	if (m_GameOver) return;
+
+	if (m_CurrentStageItemSpawningCount >= m_CurrentStageMaxItemSpawningCount) return;
+
+	for (auto& item : *m_PtrVItems)
+	{
+		if (item.Dead)
+		{
+			int item_id{ rand() % KItemTypeCount };
+
+			item.PtrEntity->SetRectangleUVRange(XMFLOAT2(60.0f * item_id, 0), XMFLOAT2(60, 60));
+			item.eItemType = (EItemType)item_id;
+
+			PositionEntityInsideScreen(item.PtrEntity);
+
+			OrientEntityTowardsMainEntity(item.PtrEntity, KItemSpeedFactor, true, 100.0f);
+
+			item.PtrEntity->Visible = true;
+			item.Dead = false;
+
+			++m_CurrentStageItemSpawningCount;
 
 			break;
 		}
@@ -291,6 +358,7 @@ void CNeonInvader::ExecuteGame()
 		ProcessCollision();
 
 		ClearDeadShots();
+		ClearDeadItems();
 
 		RepositionEnemiesOutOfScreen();
 
@@ -320,15 +388,32 @@ void CNeonInvader::ClearDeadShots()
 	{
 		if (i.Dead) continue;
 
-		if (i.PtrEntity->WorldPosition.x < -m_WindowSize.x / 2 - 20.0f ||
-			i.PtrEntity->WorldPosition.x > +m_WindowSize.x / 2 + 20.0f ||
-			i.PtrEntity->WorldPosition.y < -m_WindowSize.y / 2 - 20.0f ||
-			i.PtrEntity->WorldPosition.y > +m_WindowSize.y / 2 + 20.0f)
+		if (i.PtrEntity->WorldPosition.x < -m_WindowSize.x / 2 - KScreenSpawnBoundary ||
+			i.PtrEntity->WorldPosition.x > +m_WindowSize.x / 2 + KScreenSpawnBoundary ||
+			i.PtrEntity->WorldPosition.y < -m_WindowSize.y / 2 - KScreenSpawnBoundary ||
+			i.PtrEntity->WorldPosition.y > +m_WindowSize.y / 2 + KScreenSpawnBoundary)
 		{
 			i.PtrEntity->Visible = false;
 			i.Dead = true;
 
 			--m_CurrentShotCount;
+		}
+	}
+}
+
+void CNeonInvader::ClearDeadItems()
+{
+	for (auto& i : *m_PtrVItems)
+	{
+		if (i.Dead) continue;
+
+		if (i.PtrEntity->WorldPosition.x < -m_WindowSize.x / 2 - KScreenSpawnBoundary ||
+			i.PtrEntity->WorldPosition.x > +m_WindowSize.x / 2 + KScreenSpawnBoundary ||
+			i.PtrEntity->WorldPosition.y < -m_WindowSize.y / 2 - KScreenSpawnBoundary ||
+			i.PtrEntity->WorldPosition.y > +m_WindowSize.y / 2 + KScreenSpawnBoundary)
+		{
+			i.PtrEntity->Visible = false;
+			i.Dead = true;
 		}
 	}
 }
@@ -342,6 +427,48 @@ void CNeonInvader::ProcessCollision()
 	}
 	else
 	{
+		for (auto& item : *m_PtrVItems)
+		{
+			if (item.PtrEntity->m_Collided)
+			{
+				item.Dead = true;
+				item.PtrEntity->Visible = false;
+
+				switch (item.eItemType)
+				{
+				case EItemType::Ammo:
+					if (m_CurrentMaxShotCount < KMaxAmmoLimit)
+					{
+						++m_CurrentMaxShotCount;
+					}
+					break;
+				case EItemType::Shield:
+					if (m_CurrentLife < KMaxLifeLimit)
+					{
+						++m_CurrentLife;
+					}
+					break;
+				case EItemType::BulletSpeed:
+					if (m_CurrentBulletSpeed < KMaxBulletSpeed)
+					{
+						m_CurrentBulletSpeed += 50.0f;
+					}
+					break;
+				case EItemType::ReloadSpeed:
+					if (m_CurrentReloadInterval > KMinReloadInterval)
+					{
+						m_CurrentReloadInterval -= 30;
+						m_CurrentReloadInterval = max(m_CurrentReloadInterval, KMinReloadInterval);
+					}
+					break;
+				default:
+					break;
+				}
+
+				m_PtrMainSprite->m_Collided = false;
+			}
+		}
+
 		if (m_PtrMainSprite->m_Collided)
 		{
 			--m_CurrentLife;

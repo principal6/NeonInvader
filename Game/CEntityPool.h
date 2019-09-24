@@ -14,6 +14,7 @@ public:
 	void AddMainSpriteShotEntity(CEntity* PtrEntityShot);
 	void AddEnemyShotEntity(CEntity* PtrEnemyShot);
 	void AddEnemyEntity(CEntity* PtrEntityEnemy);
+	void AddItemEntity(CEntity* PtrEntityItem);
 
 	void ApplyPhysics(float DeltaTime);
 	void DrawEntitiesInAddedOrder();
@@ -34,6 +35,7 @@ private:
 	vector<CEntity*>					m_vEntityMainSpriteShots{};
 	vector<CEntity*>					m_vEntityEnemyShots{};
 	vector<CEntity*>					m_vEntityEnemies{};
+	vector<CEntity*>					m_vEntityItems{};
 	vector<unique_ptr<CEntity>>			m_vEntities{};
 	vector<pair<CEntity*, CEntity*>>	m_vFineCollisionPairs{};
 };

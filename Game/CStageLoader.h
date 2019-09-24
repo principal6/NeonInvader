@@ -11,6 +11,7 @@ struct SStageData
 	int EnemyCountBig{};
 	int TotalEnemyCount{};
 	int EnemyShotInterval{};
+	int MaxItemSpawningCount{};
 };
 
 struct SStageSetData

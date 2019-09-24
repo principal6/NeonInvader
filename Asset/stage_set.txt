@@ -13,6 +13,8 @@
 0
 #Enemy shot interval
 1000
+#Max item spawning count
+5
 
 #Stage ID
 1
@@ -26,6 +28,8 @@
 0
 #Enemy shot interval
 900
+#Max item spawning count
+3
 
 #Stage ID
 2
@@ -39,3 +43,5 @@
 1
 #Enemy shot interval
 800
+#Max item spawning count
+3

@@ -2,7 +2,7 @@
 
 void CStageSetLoader::LoadStageSetFromFile(const string& StageSetFileName)
 {
-	static constexpr int KRowCountPerStage{ 6 };
+	static constexpr int KRowCountPerStage{ 7 };
 	ifstream ifs{ StageSetFileName };
 	assert(ifs.is_open());
 
@@ -51,6 +51,10 @@ void CStageSetLoader::LoadStageSetFromFile(const string& StageSetFileName)
 			else if ((read_count - 1) % KRowCountPerStage == 5)
 			{
 				m_StageSet.vStages.back().EnemyShotInterval = stoi(sline);
+			}
+			else if ((read_count - 1) % KRowCountPerStage == 6)
+			{
+				m_StageSet.vStages.back().MaxItemSpawningCount = stoi(sline);
 			}
 		}
 		

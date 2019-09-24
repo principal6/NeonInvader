@@ -12,6 +12,14 @@ enum class EEnemyType
 	Big,
 };
 
+enum class EItemType
+{
+	Ammo,
+	Shield,
+	BulletSpeed,
+	ReloadSpeed,
+};
+
 struct SEffect
 {
 	CEntity* PtrEntity{};
@@ -34,6 +42,13 @@ struct SEnemy
 	int ShotIntervalCounter{};
 };
 
+struct SItem
+{
+	CEntity* PtrEntity{};
+	bool Dead{ true };
+	EItemType eItemType{};
+};
+
 class CNeonInvader final
 {
 public:
@@ -42,12 +57,15 @@ public:
 
 	void InitGame(int Life);
 	void SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
-		vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects) noexcept;
+		vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects, vector<SItem>& vItems) noexcept;
 	void SetStage(int StageID);
-	void SpawnMainSpriteShot(float ShotSpeed);
+
+	void SpawnMainSpriteShot();
+	void SpawnItem();
 
 	void AnimateEffects();
 	void ReorientEnemies();
+	void ReorientItems();
 
 	void ExecuteGame();
 
@@ -64,6 +82,7 @@ public:
 	bool IsCompleted() const noexcept { return m_GameCompleted; }
 
 private:
+	int PositionEntityInsideScreen(CEntity* PtrEntity, int FromDirection = -1);
 	void PositionEnemyInsideScreen(SEnemy& Enemy);
 	void SpawnEnemy(EEnemyType Type, int Life, int Ammo, float SpeedFactor);
 
@@ -73,21 +92,32 @@ private:
 
 	void ProcessCollision();
 	void RepositionEnemiesOutOfScreen();
-	void OrientEnemy(SEnemy& Enemy, bool GraduallyOrient = false);
+	void OrientEntityTowardsMainEntity(CEntity* PtrEntity, float SpeedFactor, bool GraduallyOrient = false, float RotationSpeedFactor = 1.0f);
 	void ClearDeadShots();
+	void ClearDeadItems();
 
 public:
 	static constexpr size_t KMaxMainSpriteShotLimit{ 20 };
 	static constexpr size_t KMaxEnemyShotLimit{ 200 };
 	static constexpr size_t KMaxEnemyLimit{ 30 };
 	static constexpr size_t KMaxEffectLimit{ 40 };
+	static constexpr size_t KMaxItemLimit{ 10 };	
 
 private:
-	static constexpr float KEnemySpawnBoundary{ 30.0f };
+	static constexpr float KScreenSpawnBoundary{ 30.0f };
 	static constexpr float KEnemyNormalSpeedFactor{ 1.2f };
 	static constexpr float KEnemyBigSpeedFactor{ 1.5f };
+	static constexpr float KItemSpeedFactor{ 180.0f };
+	static constexpr float KDefaultBulletSpeed{ 400.0f };
+	static constexpr float KMaxBulletSpeed{ 800.0f };
 	static constexpr int KCollisionInterval{ 200 };
 	static constexpr int KEnemyShotIntervalDeviance{ 300 };
+	static constexpr int KItemTypeCount{ 4 };
+	static constexpr int KMaxAmmoLimit{ 10 };
+	static constexpr int KMaxLifeLimit{ 5 };
+	static constexpr int KDefaultReloadInterval{ 300 };
+	static constexpr int KMinReloadInterval{ 50 };
+	static constexpr int KDefaultMaxShotCount{ 3 };
 
 	XMFLOAT2			m_WindowSize{};
 
@@ -97,13 +127,20 @@ private:
 	int					m_CollisionIntervalCounter{ KCollisionInterval };
 	int					m_CurrentLife{};
 	int					m_CurrentShotCount{};
-	int					m_CurrentMaxShotCount{ 3 };
+	int					m_CurrentMaxShotCount{ KDefaultMaxShotCount };
+	int					m_CurrentStageItemSpawningCount{};
+	int					m_CurrentStageMaxItemSpawningCount{};
 
 	int					m_CurrentEnemyCount{};
 	int					m_CurrentMaxEnemyCount{};
 
+	int					m_CurrentReloadInterval{ KDefaultReloadInterval };
+	int					m_CurrentReloadIntervalCounter{};
+
 	int					m_CurrentStage{};
 	int					m_MaxStage{};
+
+	float				m_CurrentBulletSpeed{ KDefaultBulletSpeed };
 
 	SStageSetData*		m_PtrStageSet{};
 	CEntity*			m_PtrMainSprite{};
@@ -111,4 +148,5 @@ private:
 	vector<SShot>*		m_PtrVMainSpriteShots{};
 	vector<SShot>*		m_PtrVEnemyShots{};
 	vector<SEffect>*	m_PtrVEffecs{};
+	vector<SItem>*		m_PtrVItems{};
 };

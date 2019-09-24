@@ -39,6 +39,13 @@ void CEntityPool::AddEnemyEntity(CEntity* PtrEntityEnemy)
 	m_vEntityEnemies.emplace_back(PtrEntityEnemy);
 }
 
+void CEntityPool::AddItemEntity(CEntity* PtrEntityItem)
+{
+	assert(PtrEntityItem);
+
+	m_vEntityItems.emplace_back(PtrEntityItem);
+}
+
 void CEntityPool::ApplyPhysics(float DeltaTime)
 {
 	for (auto& i : m_vEntities)
@@ -100,6 +107,23 @@ void CEntityPool::DetectCoarseCollision()
 			if (distance <= enemy_shot->m_CoarseCollisionRadius + m_EntityMainSprite->m_CoarseCollisionRadius)
 			{
 				m_vFineCollisionPairs.emplace_back(enemy_shot, m_EntityMainSprite);
+			}
+		}
+	}
+
+	// Main sprite vs. Items
+	for (auto& item : m_vEntityItems)
+	{
+		item->m_Collided = false;
+
+		if (item->ShouldCollide && m_EntityMainSprite->ShouldCollide && item->Visible && m_EntityMainSprite->Visible)
+		{
+			XMFLOAT2 diff{ item->WorldPosition - m_EntityMainSprite->WorldPosition };
+			float distance{ XMFLOAT2GetLength(diff) };
+
+			if (distance <= item->m_CoarseCollisionRadius + m_EntityMainSprite->m_CoarseCollisionRadius)
+			{
+				m_vFineCollisionPairs.emplace_back(item, m_EntityMainSprite);
 			}
 		}
 	}
