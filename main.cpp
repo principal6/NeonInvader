@@ -317,14 +317,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			}
 			else
 			{
-				ascii_renderer.RenderText("Stage: " + to_string(neon_invader.GetStage()) + "/" + to_string(neon_invader.GetMaxStage()),
-					XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 010.0f));
-				ascii_renderer.RenderText("Life: " + to_string(neon_invader.GetLife()),
-					XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 040.0f));
+				ascii_renderer.RenderText("Stage: " + to_string(neon_invader.GetStage() + 1) + "/" + to_string(neon_invader.GetMaxStage() + 1),
+					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 010.0f));
+				ascii_renderer.RenderText("Life : " + to_string(neon_invader.GetLife()),
+					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 040.0f));
 				ascii_renderer.RenderText("Enemy: " + to_string(neon_invader.GetEnemyCount()) + "/" + to_string(neon_invader.GetMaxEnemyCount()),
-					XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 070.0f));
+					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 070.0f));
 				ascii_renderer.RenderText("Shots: " + to_string(neon_invader.GetShotCount()) + "/" + to_string(neon_invader.GetMaxShotCount()),
-					XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 100.0f));
+					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 100.0f));
 			}
 			
 			if (should_show_game_over)

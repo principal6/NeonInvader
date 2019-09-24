@@ -110,14 +110,14 @@ private:
 	static constexpr float KEnemyNormalSpeedFactor{ 1.2f };
 	static constexpr float KEnemyBigSpeedFactor{ 1.5f };
 	static constexpr float KItemSpeedFactor{ 180.0f };
-	static constexpr float KDefaultBulletSpeed{ 400.0f };
-	static constexpr float KMaxBulletSpeed{ 800.0f };
+	static constexpr float KDefaultBulletSpeed{ 200.0f };
+	static constexpr float KMaxBulletSpeed{ 600.0f };
 	static constexpr int KCollisionInterval{ 200 };
 	static constexpr int KEnemyShotIntervalDeviance{ 300 };
 	static constexpr int KItemTypeCount{ 4 };
 	static constexpr int KMaxAmmoLimit{ 10 };
 	static constexpr int KMaxLifeLimit{ 5 };
-	static constexpr int KDefaultReloadInterval{ 300 };
+	static constexpr int KDefaultReloadInterval{ 400 };
 	static constexpr int KMinReloadInterval{ 50 };
 	static constexpr int KDefaultMaxShotCount{ 3 };
 

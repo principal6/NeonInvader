@@ -1,5 +1,5 @@
 #Total stage count
-3
+5
 
 #Stage ID
 0
@@ -43,5 +43,35 @@
 1
 #Enemy shot interval
 800
+#Max item spawning count
+3
+
+#Stage ID
+3
+#SpeedFactor
+80
+#Small enemy count
+3
+#Normal enemy count
+2
+#Big enemy count
+2
+#Enemy shot interval
+700
+#Max item spawning count
+3
+
+#Stage ID
+4
+#SpeedFactor
+90
+#Small enemy count
+4
+#Normal enemy count
+3
+#Big enemy count
+2
+#Enemy shot interval
+700
 #Max item spawning count
 3

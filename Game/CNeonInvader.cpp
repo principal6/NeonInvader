@@ -5,6 +5,10 @@ void CNeonInvader::InitGame(int Life)
 	m_CurrentLife = Life;
 	m_GameOver = false;
 	m_GameStarted = true;
+
+	m_CurrentBulletSpeed = KDefaultBulletSpeed;
+	m_CurrentMaxShotCount = KDefaultMaxShotCount;
+	m_CurrentReloadInterval = KDefaultReloadInterval;
 }
 
 void CNeonInvader::SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
@@ -243,6 +247,7 @@ void CNeonInvader::SetStage(int StageID)
 	for (auto& enemy : *m_PtrVEnemies)
 	{
 		enemy.Dead = true;
+		enemy.PtrEntity->Visible = false;
 	}
 
 	m_CurrentEnemyCount = m_CurrentMaxEnemyCount = stage->TotalEnemyCount;
