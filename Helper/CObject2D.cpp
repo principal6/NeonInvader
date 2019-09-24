@@ -38,7 +38,7 @@ void CObject2D::Create(const vector<SVertex2D>& vVertices, const vector<SIndex>&
 	}
 }
 
-void CObject2D::CreateRectangle(const XMFLOAT2& RectangleSize, bool IsDynamic)
+void CObject2D::CreateRectangle(const XMFLOAT2& RectangleSize, const XMFLOAT2& Offset, bool IsDynamic)
 {
 	assert(!m_VertexBuffer);
 	assert(!m_IndexBuffer);
@@ -48,10 +48,10 @@ void CObject2D::CreateRectangle(const XMFLOAT2& RectangleSize, bool IsDynamic)
 
 	vector<SVertex2D> vertices
 	{
-		SVertex2D(XMFLOAT2(-half_width, +half_height), XMFLOAT2(0.0f, 0.0f)),
-		SVertex2D(XMFLOAT2(+half_width, +half_height), XMFLOAT2(1.0f, 0.0f)),
-		SVertex2D(XMFLOAT2(-half_width, -half_height), XMFLOAT2(0.0f, 1.0f)),
-		SVertex2D(XMFLOAT2(+half_width, -half_height), XMFLOAT2(1.0f, 1.0f)),
+		SVertex2D(XMFLOAT2(Offset.x - half_width, Offset.y + half_height), XMFLOAT2(0.0f, 0.0f)),
+		SVertex2D(XMFLOAT2(Offset.x + half_width, Offset.y + half_height), XMFLOAT2(1.0f, 0.0f)),
+		SVertex2D(XMFLOAT2(Offset.x - half_width, Offset.y - half_height), XMFLOAT2(0.0f, 1.0f)),
+		SVertex2D(XMFLOAT2(Offset.x + half_width, Offset.y - half_height), XMFLOAT2(1.0f, 1.0f)),
 	};
 
 	vector<SIndex> indices
@@ -61,6 +61,11 @@ void CObject2D::CreateRectangle(const XMFLOAT2& RectangleSize, bool IsDynamic)
 	};
 
 	Create(vertices, indices, IsDynamic);
+}
+
+void CObject2D::CreateRectangle(const XMFLOAT2& RectangleSize, bool IsDynamic)
+{
+	CreateRectangle(RectangleSize, XMFLOAT2(0, 0), IsDynamic);
 }
 
 void CObject2D::SetTexture(CTexture* SharedTexture)

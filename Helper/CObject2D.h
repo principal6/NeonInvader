@@ -41,6 +41,7 @@ public:
 
 	virtual void Create(const vector<SVertex2D>& vVertices, const vector<SIndex>& vIndices, bool IsDynamic = true);
 	virtual void CreateRectangle(const XMFLOAT2& RectangleSize, bool IsDynamic = true);
+	virtual void CreateRectangle(const XMFLOAT2& RectangleSize, const XMFLOAT2& Offset, bool IsDynamic = true);
 
 	virtual void SetTexture(CTexture* SharedTexture);
 	virtual void SetRectangleUVRange(const XMFLOAT2& OffsetInTexture, const XMFLOAT2& SizeInTexture, ERenderFlipOption Flip = ERenderFlipOption::None);

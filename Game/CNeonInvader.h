@@ -56,6 +56,7 @@ public:
 	int GetMaxShotCount() const noexcept { return m_CurrentMaxShotCount; }
 	int GetEnemyCount() const noexcept { return m_CurrentEnemyCount; }
 	int GetMaxEnemyCount() const noexcept { return m_CurrentMaxEnemyCount; }
+	bool IsGameRunning() const noexcept { return m_GameStarted; }
 	bool IsGameOver() const noexcept { return m_GameOver; }
 	bool IsCompleted() const noexcept { return m_GameCompleted; }
 

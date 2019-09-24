@@ -30,6 +30,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CTexture* texture_game_over{ texture_pool.AddSharedTexture(KAssetDir + "game_over.png") };
 	CTexture* texture_completed{ texture_pool.AddSharedTexture(KAssetDir + "completed.png") };
 	CTexture* texture_explosion{ texture_pool.AddSharedTexture(KAssetDir + "explosion_196x190_by_Bleed.png") };
+	CTexture* texture_guideline{ texture_pool.AddSharedTexture(KAssetDir + "guideline.png") };
 
 	CNeonInvader neon_invader{ KWindowSize };
 
@@ -145,6 +146,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		obj_completed.Sampler = ESampler::Linear;
 	}
 
+	CObject2D obj_guideline{ &directx };
+	{
+		XMFLOAT2 size{ texture_guideline->GetTextureSize() };
+		obj_guideline.SetTexture(texture_guideline);
+		obj_guideline.CreateRectangle(texture_guideline->GetTextureSize(), XMFLOAT2(0, size.y / 2));
+		obj_guideline.Sampler = ESampler::Linear;
+	}
+
 	CASCIIRenderer ascii_renderer{ &directx };
 	ascii_renderer.Create(100, KAssetDir, "charset_d2coding_20_info.txt", 0.8f);
 
@@ -161,6 +170,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	bool should_show_title{ true };
 	bool should_show_game_over{ false };
 	bool should_show_completed{ false };
+	bool should_draw_guildeline{ false };
 	int main_ship_initial_life{ 3 };
 	float shot_speed{ 400.0f };
 
@@ -245,6 +255,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			directx.BeginRendering(KClearColor);
 
 			obj_bg.Draw();
+
+			if (neon_invader.IsGameRunning() && should_draw_guildeline)
+			{
+				obj_guideline.WorldPosition = entity_main_ship->WorldPosition;
+				obj_guideline.RotationAngle = entity_main_ship->RotationAngle;
+				obj_guideline.Draw();
+			}
 
 			entity_pool.ApplyPhysics(delta_time);
 			entity_pool.DrawEntitiesInAddedOrder();
