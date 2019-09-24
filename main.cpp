@@ -256,8 +256,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 					should_show_title = false;
 					entity_main_ship->Visible = true;
 
-					neon_invader.SetStage(0);
 					neon_invader.InitGame(main_ship_initial_life);
+					neon_invader.SetStage(0);
 				}
 
 				obj_title.Draw();
@@ -281,8 +281,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 					should_show_game_over = false;
 					entity_main_ship->Visible = true;
 
-					neon_invader.SetStage(0);
 					neon_invader.InitGame(main_ship_initial_life);
+					neon_invader.SetStage(0);
 				}
 
 				obj_game_over.Draw();
@@ -293,8 +293,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				{
 					should_show_completed = false;
 
-					neon_invader.SetStage(0);
 					neon_invader.InitGame(main_ship_initial_life);
+					neon_invader.SetStage(0);
 				}
 
 				obj_completed.Draw();

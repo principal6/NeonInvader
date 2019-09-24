@@ -128,6 +128,8 @@ void CNeonInvader::RepositionEnemiesOutOfScreen()
 
 void CNeonInvader::SetStage(int StageID)
 {
+	if (m_GameOver) return;
+
 	if (StageID > m_MaxStage)
 	{
 		m_GameOver = true;
@@ -232,13 +234,6 @@ void CNeonInvader::ExecuteGame()
 		{
 			SetStage(m_CurrentStage + 1);
 		}
-
-		if (m_CurrentLife <= 0)
-		{
-			SpawnEffect(m_PtrMainSprite->WorldPosition);
-
-			m_GameOver = true;
-		}
 	}
 }
 
@@ -273,6 +268,14 @@ void CNeonInvader::ProcessCollision()
 		if (m_PtrMainSprite->m_Collided)
 		{
 			--m_CurrentLife;
+
+			if (m_CurrentLife <= 0)
+			{
+				SpawnEffect(m_PtrMainSprite->WorldPosition);
+
+				m_GameOver = true;
+			}
+
 			m_CollisionIntervalCounter = 0;
 		}
 
