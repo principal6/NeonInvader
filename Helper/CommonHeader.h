@@ -12,7 +12,9 @@
 #include <wrl.h>
 #include <d3dcompiler.h>
 #include "../DirectXTK/pch.h"
+#include "../FMOD/fmod.hpp"
 
+#pragma comment(lib, "fmodL_vc.lib")
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "DirectXTK.lib")

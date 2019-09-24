@@ -53,14 +53,16 @@ class CNeonInvader final
 {
 public:
 	CNeonInvader(const XMFLOAT2& WindowSize) : m_WindowSize{ WindowSize } {}
-	~CNeonInvader() {}
+	~CNeonInvader() { ReleaseAudio(); }
 
+	void InitAudio(const string& AssetDir);
+	void ReleaseAudio();
 	void InitGame(int Life);
 	void SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
 		vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects, vector<SItem>& vItems) noexcept;
 	void SetStage(int StageID);
 
-	void SpawnMainSpriteShot();
+	bool SpawnMainSpriteShot();
 	void SpawnItem();
 
 	void AnimateEffects();
@@ -151,4 +153,15 @@ private:
 	vector<SShot>*		m_PtrVEnemyShots{};
 	vector<SEffect>*	m_PtrVEffecs{};
 	vector<SItem>*		m_PtrVItems{};
+
+	FMOD::System*		m_FMODSystem{};
+	FMOD::Sound*		m_SoundBG{};
+	FMOD::Sound*		m_SoundLaser{};
+	FMOD::Sound*		m_SoundLaserEnemy{};
+	FMOD::Sound*		m_SoundExplosionBig{};
+	FMOD::Sound*		m_SoundExplosionSmall{};
+	FMOD::Sound*		m_SoundItem{};
+
+	FMOD::Channel*		m_FMODChannelBG{};
+	FMOD::Channel*		m_FMODChannelEffects{};
 };

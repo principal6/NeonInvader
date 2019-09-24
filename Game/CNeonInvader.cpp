@@ -1,5 +1,38 @@
 #include "CNeonInvader.h"
 
+void CNeonInvader::InitAudio(const string& AssetDir)
+{
+	assert(FMOD::System_Create(&m_FMODSystem) == FMOD_OK);
+
+	assert(m_FMODSystem->init(32, FMOD_INIT_NORMAL, nullptr) == FMOD_OK);
+
+	assert(m_FMODSystem->createSound((AssetDir + "chillout_lonley_pad_meditation_karma_ron.mp3").c_str(), FMOD_LOOP_NORMAL, nullptr, &m_SoundBG) == FMOD_OK);
+
+	assert(m_FMODSystem->createSound((AssetDir + "laser_jm_noiz.wav").c_str(), FMOD_DEFAULT | FMOD_NONBLOCKING, nullptr, &m_SoundLaser) == FMOD_OK);
+
+	assert(m_FMODSystem->createSound((AssetDir + "laser_enemy.wav").c_str(), FMOD_DEFAULT | FMOD_NONBLOCKING, nullptr, &m_SoundLaserEnemy) == FMOD_OK);
+
+	assert(m_FMODSystem->createSound((AssetDir + "big_explosion.wav").c_str(), FMOD_DEFAULT | FMOD_NONBLOCKING, nullptr, &m_SoundExplosionBig) == FMOD_OK);
+
+	assert(m_FMODSystem->createSound((AssetDir + "small_explosion.wav").c_str(), FMOD_DEFAULT | FMOD_NONBLOCKING, nullptr, &m_SoundExplosionSmall) == FMOD_OK);
+
+	assert(m_FMODSystem->createSound((AssetDir + "item.wav").c_str(), FMOD_DEFAULT | FMOD_NONBLOCKING, nullptr, &m_SoundItem) == FMOD_OK);
+
+	m_FMODSystem->playSound(m_SoundBG, nullptr, false, &m_FMODChannelBG);
+}
+
+void CNeonInvader::ReleaseAudio()
+{
+	m_SoundBG->release();
+	m_SoundLaser->release();
+	m_SoundExplosionBig->release();
+	m_SoundExplosionSmall->release();
+
+	m_SoundItem->release();
+
+	m_FMODSystem->release();
+}
+
 void CNeonInvader::InitGame(int Life)
 {
 	m_CurrentLife = Life;
@@ -129,6 +162,8 @@ void CNeonInvader::SpawnEnemyShot(SEnemy& Enemy, float ShotSpeed)
 
 			shot.PtrEntity->Visible = true;
 			shot.Dead = false;
+
+			m_FMODSystem->playSound(m_SoundLaserEnemy, nullptr, false, &m_FMODChannelEffects);
 
 			break;
 		}
@@ -279,12 +314,13 @@ void CNeonInvader::Reload()
 	}
 }
 
-void CNeonInvader::SpawnMainSpriteShot()
+bool CNeonInvader::SpawnMainSpriteShot()
 {
-	if (!m_GameStarted) return;
+	if (!m_GameStarted) return false;
 
-	if (m_CurrentReloadIntervalCounter < m_CurrentReloadInterval) return;
+	if (m_CurrentReloadIntervalCounter < m_CurrentReloadInterval) return false;
 
+	bool result{ false };
 	for (size_t i = 0; i < m_CurrentMaxShotCount; ++i)
 	{
 		SShot& shot{ (*m_PtrVMainSpriteShots)[i] };
@@ -305,11 +341,17 @@ void CNeonInvader::SpawnMainSpriteShot()
 
 			++m_CurrentShotCount;
 
+			result = true;
+
+			m_FMODSystem->playSound(m_SoundLaser, nullptr, false, &m_FMODChannelEffects);
+
 			break;
 		}
 	}
 
 	m_CurrentReloadIntervalCounter = 0;
+
+	return result;
 }
 
 void CNeonInvader::SpawnItem()
@@ -390,6 +432,8 @@ void CNeonInvader::ExecuteGame()
 		{
 			SetStage(m_CurrentStage + 1);
 		}
+
+		m_FMODSystem->update();
 	}
 }
 
@@ -476,7 +520,34 @@ void CNeonInvader::ProcessCollision()
 					break;
 				}
 
+				m_FMODSystem->playSound(m_SoundItem, nullptr, false, &m_FMODChannelEffects);
+
 				m_PtrMainSprite->m_Collided = false;
+			}
+		}
+
+		for (auto& main_sprite_shot : *m_PtrVMainSpriteShots)
+		{
+			if (main_sprite_shot.PtrEntity->m_Collided)
+			{
+				--m_CurrentShotCount;
+				main_sprite_shot.Dead = true;
+				main_sprite_shot.PtrEntity->Visible = false;
+
+				m_FMODSystem->playSound(m_SoundExplosionSmall, nullptr, false, &m_FMODChannelEffects);
+				SpawnEffect(main_sprite_shot.PtrEntity->WorldPosition, 0.4f);
+			}
+		}
+
+		for (auto& enemy_shot : *m_PtrVEnemyShots)
+		{
+			if (enemy_shot.PtrEntity->m_Collided)
+			{
+				enemy_shot.Dead = true;
+				enemy_shot.PtrEntity->Visible = false;
+
+				m_FMODSystem->playSound(m_SoundExplosionSmall, nullptr, false, &m_FMODChannelEffects);
+				SpawnEffect(enemy_shot.PtrEntity->WorldPosition, 0.2f);
 			}
 		}
 
@@ -486,6 +557,8 @@ void CNeonInvader::ProcessCollision()
 
 			if (m_CurrentLife <= 0)
 			{
+				m_FMODSystem->playSound(m_SoundExplosionBig, nullptr, false, &m_FMODChannelEffects);
+
 				SpawnEffect(m_PtrMainSprite->WorldPosition);
 
 				m_GameOver = true;
@@ -506,31 +579,10 @@ void CNeonInvader::ProcessCollision()
 					enemy.PtrEntity->Visible = false;
 					--m_CurrentEnemyCount;
 
+					m_FMODSystem->playSound(m_SoundExplosionBig, nullptr, false, &m_FMODChannelEffects);
+
 					SpawnEffect(enemy.PtrEntity->WorldPosition);
 				}
-			}
-		}
-
-		for (auto& main_sprite_shot : *m_PtrVMainSpriteShots)
-		{
-			if (main_sprite_shot.PtrEntity->m_Collided)
-			{
-				--m_CurrentShotCount;
-				main_sprite_shot.Dead = true;
-				main_sprite_shot.PtrEntity->Visible = false;
-
-				SpawnEffect(main_sprite_shot.PtrEntity->WorldPosition, 0.4f);
-			}
-		}
-
-		for (auto& enemy_shot : *m_PtrVEnemyShots)
-		{
-			if (enemy_shot.PtrEntity->m_Collided)
-			{
-				enemy_shot.Dead = true;
-				enemy_shot.PtrEntity->Visible = false;
-
-				SpawnEffect(enemy_shot.PtrEntity->WorldPosition, 0.2f);
 			}
 		}
 	}

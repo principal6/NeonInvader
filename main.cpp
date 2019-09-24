@@ -212,6 +212,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	bool should_draw_guildeline{ false };
 	int main_ship_initial_life{ 3 };
 
+	neon_invader.InitAudio(KAssetDir);
+
 	while (true)
 	{
 		static MSG msg{};

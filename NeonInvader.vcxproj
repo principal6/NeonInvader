@@ -91,6 +91,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -159,6 +160,14 @@
     <ClInclude Include="DirectXTK\VertexTypes.h" />
     <ClInclude Include="DirectXTK\WICTextureLoader.h" />
     <ClInclude Include="DirectXTK\XboxDDSTextureLoader.h" />
+    <ClInclude Include="FMOD\fmod.h" />
+    <ClInclude Include="FMOD\fmod.hpp" />
+    <ClInclude Include="FMOD\fmod_codec.h" />
+    <ClInclude Include="FMOD\fmod_common.h" />
+    <ClInclude Include="FMOD\fmod_dsp.h" />
+    <ClInclude Include="FMOD\fmod_dsp_effects.h" />
+    <ClInclude Include="FMOD\fmod_errors.h" />
+    <ClInclude Include="FMOD\fmod_output.h" />
     <ClInclude Include="Game\CEntity.h" />
     <ClInclude Include="Game\CEntityPool.h" />
     <ClInclude Include="Game\CStageLoader.h" />
@@ -184,10 +193,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="DirectXTK\SimpleMath.inl" />
+    <None Include="FMOD\fmod.cs" />
+    <None Include="FMOD\fmod.dll" />
+    <None Include="FMOD\fmodL.dll" />
+    <None Include="FMOD\fmod_dsp.cs" />
+    <None Include="FMOD\fmod_errors.cs" />
     <None Include="HLSL\Header.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="DirectXTK\DirectXTK.lib" />
+    <Library Include="FMOD\fmodL_vc.lib" />
+    <Library Include="FMOD\fmod_vc.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
