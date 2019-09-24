@@ -7,11 +7,12 @@ void CNeonInvader::InitGame(int Life)
 	m_GameStarted = true;
 }
 
-void CNeonInvader::SetGameData(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots) noexcept
+void CNeonInvader::SetGameData(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots, vector<SEffect>& vEffects) noexcept
 {
 	m_PtrMainSprite = EntityMainSprite;
 	m_PtrVEnemies = &vEnemies;
 	m_PtrVShots = &vShots;
+	m_PtrVEffecs = &vEffects;
 }
 
 void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy)
@@ -90,6 +91,23 @@ void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, float SpeedFactor)
 	}
 }
 
+void CNeonInvader::SpawnEffect(const XMFLOAT2& Position)
+{
+	for (auto& effect : *m_PtrVEffecs)
+	{
+		if (effect.Dead)
+		{
+			effect.Dead = false;
+
+			effect.PtrEntity->WorldPosition = Position;
+			effect.PtrEntity->Visible = true;
+			effect.PtrEntity->SetAnimation(0, true);
+
+			break;
+		}
+	}
+}
+
 void CNeonInvader::RepositionEnemiesOutOfScreen()
 {
 	for (auto& enemy : *m_PtrVEnemies)
@@ -133,6 +151,7 @@ void CNeonInvader::SetLevel(SLevelData* PtrLevelData)
 
 void CNeonInvader::SpawnShot(float ShotSpeed)
 {
+	if (!m_GameStarted) return;
 	if (m_GameOver) return;
 
 	for (size_t i = 0; i < m_CurrentMaxShotCount; ++i)
@@ -160,6 +179,22 @@ void CNeonInvader::SpawnShot(float ShotSpeed)
 	}
 }
 
+void CNeonInvader::AnimateEffects()
+{
+	for (auto& effect : *m_PtrVEffecs)
+	{
+		if (effect.PtrEntity->Visible && effect.PtrEntity->m_vAnimations.size())
+		{
+			effect.PtrEntity->Animate();
+			if (effect.PtrEntity->m_vAnimations[effect.PtrEntity->m_AnimationIndex]->IsOver)
+			{
+				effect.PtrEntity->Visible = false;
+				effect.Dead = true;
+			}
+		}
+	}
+}
+
 void CNeonInvader::ExecuteGame()
 {
 	if (m_GameOver) return;
@@ -174,6 +209,8 @@ void CNeonInvader::ExecuteGame()
 
 		if (m_CurrentLife <= 0)
 		{
+			SpawnEffect(m_PtrMainSprite->WorldPosition);
+
 			m_GameOver = true;
 		}
 	}
@@ -224,6 +261,8 @@ void CNeonInvader::ProcessCollision()
 					enemy.Dead = true;
 					enemy.PtrEntity->Visible = false;
 					--m_CurrentEnemyCount;
+
+					SpawnEffect(enemy.PtrEntity->WorldPosition);
 				}
 			}
 		}

@@ -28,6 +28,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CTexture* texture_sprite{ texture_pool.AddSharedTexture(KAssetDir + "neon_space_shooter.png") };
 	CTexture* texture_title{ texture_pool.AddSharedTexture(KAssetDir + "title.png") };
 	CTexture* texture_game_over{ texture_pool.AddSharedTexture(KAssetDir + "game_over.png") };
+	CTexture* texture_explosion{ texture_pool.AddSharedTexture(KAssetDir + "explosion_196x190_by_Bleed.png") };
 
 	CNeonInvader neon_invader{ KWindowSize };
 
@@ -36,7 +37,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	for (size_t i = 0; i < neon_invader.KMaxShotLimit; ++i)
 	{
 		v_main_ship_shots.emplace_back();
-		v_main_ship_shots.back().PtrEntity = entity_pool.AddEntity();
+		v_main_ship_shots.back().PtrEntity = entity_pool.CreateEntity();
 		v_main_ship_shots.back().PtrEntity->SetTexture(texture_sprite);
 		v_main_ship_shots.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 40));
 		v_main_ship_shots.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(110, 40));
@@ -51,7 +52,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	for (size_t i = 0; i < neon_invader.KMaxEnemyLimit; ++i)
 	{
 		v_enemy_ships.emplace_back();
-		v_enemy_ships.back().PtrEntity = entity_pool.AddEntity();
+		v_enemy_ships.back().PtrEntity = entity_pool.CreateEntity();
 		v_enemy_ships.back().PtrEntity->SetTexture(texture_sprite);
 		v_enemy_ships.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 80));
 		v_enemy_ships.back().PtrEntity->Sampler = ESampler::Linear;
@@ -60,7 +61,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		entity_pool.AddEnemyEntity(v_enemy_ships.back().PtrEntity);
 	}
 
-	CEntity* entity_main_ship{ entity_pool.AddEntity() };
+	CEntity* entity_main_ship{ entity_pool.CreateEntity() };
 	{
 		entity_main_ship->SetTexture(texture_sprite);
 		entity_main_ship->CreateRectangle(XMFLOAT2(110, 80));
@@ -69,8 +70,47 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		entity_main_ship->Visible = false;
 		entity_main_ship->SetCollisionBox(XMFLOAT2(27, 20));
 	}
+
+	vector<SEffect> v_effects{};
+	for (size_t i = 0; i < neon_invader.KMaxEffectLimit; ++i)
+	{
+		v_effects.emplace_back();
+
+		v_effects.back().Dead = true;
+
+		CEntity*& entity{ v_effects.back().PtrEntity };
+		{
+			entity = entity_pool.CreateEntity();
+
+			XMFLOAT2 rect{ XMFLOAT2(196, 190) };
+			entity->SetTexture(texture_explosion);
+			entity->CreateRectangle(rect);
+			entity->ShouldCollide = false;
+			entity->Visible = false;
+
+			SAnimation* animation{ entity->AddAnimation("explode") };
+			animation->ShouldRepeat = false;
+			animation->vFrames.emplace_back(XMFLOAT2(0, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(196, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(392, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(588, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(784, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(980, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1176, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1372, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1568, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1764, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1960, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(2156, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(2352, 0), rect);
+
+			entity->SetAnimation("explode");
+		}
+	}
+
 	entity_pool.SetMainSpriteEntity(entity_main_ship);
-	neon_invader.SetGameData(entity_main_ship, v_enemy_ships, v_main_ship_shots);
+	neon_invader.SetGameData(entity_main_ship, v_enemy_ships, v_main_ship_shots, v_effects);
+
 
 	CObject2D obj_bg{ &directx };
 	{
@@ -187,6 +227,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			if (time_now_microsec >= timer_animation + 1'500)
 			{
+				neon_invader.AnimateEffects();
+
 				timer_animation = time_now_microsec;
 			}
 

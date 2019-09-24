@@ -25,21 +25,22 @@ SAnimation* CEntity::AddAnimation(const string& AnimationName, size_t TickPerFra
 	return m_vAnimations.back().get();
 }
 
-void CEntity::SetAnimation(size_t AnimationIndex)
+void CEntity::SetAnimation(size_t AnimationIndex, bool ForcedSet)
 {
-	if (m_AnimationIndex != AnimationIndex)
+	if (m_AnimationIndex != AnimationIndex || ForcedSet)
 	{
 		m_AnimationIndex = AnimationIndex;
 		m_vAnimations[m_AnimationIndex]->CurrentFrameIndex = 0;
+		m_vAnimations[m_AnimationIndex]->IsOver = false;
 		m_AnimationTick = 0;
 
 		UpdateAnimationFrame();
 	}
 }
 
-void CEntity::SetAnimation(const string& AnimationName)
+void CEntity::SetAnimation(const string& AnimationName, bool ForcedSet)
 {
-	SetAnimation(m_AnimationIndexMap[AnimationName]);
+	SetAnimation(m_AnimationIndexMap[AnimationName], ForcedSet);
 }
 
 void CEntity::SetAnimationFlipping(ERenderFlipOption Flip)
@@ -53,15 +54,28 @@ void CEntity::Animate()
 {
 	++m_AnimationTick;
 
-	if (m_AnimationTick >= m_vAnimations[m_AnimationIndex]->TickPerFrame)
+	auto& current_animation{ m_vAnimations[m_AnimationIndex] };
+	if (m_AnimationTick >= current_animation->TickPerFrame)
 	{
-		++m_vAnimations[m_AnimationIndex]->CurrentFrameIndex;
-		if (m_vAnimations[m_AnimationIndex]->CurrentFrameIndex >= m_vAnimations[m_AnimationIndex]->vFrames.size())
+		if (!current_animation->IsOver)
 		{
-			m_vAnimations[m_AnimationIndex]->CurrentFrameIndex = 0;
-		}
+			++current_animation->CurrentFrameIndex;
 
-		UpdateAnimationFrame();
+			if (current_animation->CurrentFrameIndex >= current_animation->vFrames.size())
+			{
+				if (current_animation->ShouldRepeat)
+				{
+					current_animation->CurrentFrameIndex = 0;
+				}
+				else
+				{
+					current_animation->CurrentFrameIndex = current_animation->vFrames.size() - 1;
+					current_animation->IsOver = true;
+				}
+			}
+
+			UpdateAnimationFrame();
+		}
 
 		m_AnimationTick = 0;
 	}

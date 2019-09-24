@@ -8,7 +8,7 @@ public:
 	CEntityPool(CDirectX* DirectX) : m_DirectX{ DirectX } {};
 	~CEntityPool() {};
 
-	CEntity* AddEntity();
+	CEntity* CreateEntity();
 	CEntity* GetEntity(size_t Index);
 	void SetMainSpriteEntity(CEntity* PtrEntity);
 	void AddMainSpriteShotEntity(CEntity* PtrEntityShot);

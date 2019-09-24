@@ -16,12 +16,15 @@ struct SAnimationFrame
 
 struct SAnimation
 {
-	SAnimation(const string& _Name, size_t _TickPerFrame) : Name{ _Name }, TickPerFrame{ _TickPerFrame } {}
+	SAnimation(const string& _Name, size_t _TickPerFrame, bool _ShouldRepeat = true) : 
+		Name{ _Name }, TickPerFrame{ _TickPerFrame }, ShouldRepeat{ _ShouldRepeat } {}
 
 	string Name{};
 	size_t TickPerFrame{};
 	size_t CurrentFrameIndex{};
 	vector<SAnimationFrame> vFrames{};
+	bool ShouldRepeat{};
+	bool IsOver{ false };
 };
 
 class CEntity final : public CObject2D
@@ -36,8 +39,8 @@ public:
 	void SetCollisionBox(const XMFLOAT2& HalfSize);
 
 	SAnimation* AddAnimation(const string& AnimationName, size_t TickPerFrame = 30);
-	void SetAnimation(size_t AnimationIndex);
-	void SetAnimation(const string& AnimationName);
+	void SetAnimation(size_t AnimationIndex, bool ForcedSet = false);
+	void SetAnimation(const string& AnimationName, bool ForcedSet = false);
 	void SetAnimationFlipping(ERenderFlipOption Flip);
 	void Animate();
 

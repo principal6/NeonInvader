@@ -1,6 +1,6 @@
 #include "CEntityPool.h"
 
-CEntity* CEntityPool::AddEntity()
+CEntity* CEntityPool::CreateEntity()
 {
 	m_vEntities.emplace_back(make_unique<CEntity>(m_DirectX));
 	return m_vEntities.back().get();

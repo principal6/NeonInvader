@@ -12,6 +12,12 @@ enum class EEnemyType
 	Big,
 };
 
+struct SEffect
+{
+	CEntity* PtrEntity{};
+	bool Dead{ true };
+};
+
 struct SShot
 {
 	CEntity* PtrEntity{};
@@ -33,9 +39,11 @@ public:
 	~CNeonInvader() {}
 
 	void InitGame(int Life);
-	void SetGameData(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots) noexcept;
+	void SetGameData(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots, vector<SEffect>& vEffects) noexcept;
 	void SetLevel(SLevelData* PtrLevelData);
 	void SpawnShot(float ShotSpeed);
+
+	void AnimateEffects();
 
 	void ExecuteGame();
 
@@ -48,8 +56,10 @@ public:
 	bool IsGameOver() const noexcept { return m_GameOver; }
 
 private:
-	void SpawnEnemy(EEnemyType Type, int Life, float SpeedFactor);
 	void PositionEnemyInsideScreen(SEnemy& Enemy);
+	void SpawnEnemy(EEnemyType Type, int Life, float SpeedFactor);
+
+	void SpawnEffect(const XMFLOAT2& Position);
 
 	void ProcessCollision();
 	void RepositionEnemiesOutOfScreen();
@@ -58,6 +68,7 @@ private:
 public:
 	static constexpr size_t KMaxShotLimit{ 20 };
 	static constexpr size_t KMaxEnemyLimit{ 30 };
+	static constexpr size_t KMaxEffectLimit{ 40 };
 
 private:
 	static constexpr float KEnemySpawnBoundary{ 30.0f };
@@ -65,19 +76,20 @@ private:
 	static constexpr float KEnemyBigSpeedFactor{ 1.5f };
 	static constexpr int KCollisionInterval{ 600 };
 
-	XMFLOAT2 m_WindowSize{};
+	XMFLOAT2			m_WindowSize{};
 
-	bool m_GameStarted{ false };
-	bool m_GameOver{ false };
-	int m_CollisionIntervalCounter{ KCollisionInterval };
-	int m_CurrentLife{};
-	int m_CurrentShotCount{};
-	int m_CurrentMaxShotCount{ 3 };
+	bool				m_GameStarted{ false };
+	bool				m_GameOver{ false };
+	int					m_CollisionIntervalCounter{ KCollisionInterval };
+	int					m_CurrentLife{};
+	int					m_CurrentShotCount{};
+	int					m_CurrentMaxShotCount{ 3 };
 
-	int m_CurrentEnemyCount{};
-	int m_CurrentMaxEnemyCount{};
+	int					m_CurrentEnemyCount{};
+	int					m_CurrentMaxEnemyCount{};
 
-	CEntity* m_PtrMainSprite{};
-	vector<SEnemy>* m_PtrVEnemies{};
-	vector<SShot>* m_PtrVShots{};
+	CEntity*			m_PtrMainSprite{};
+	vector<SEnemy>*		m_PtrVEnemies{};
+	vector<SShot>*		m_PtrVShots{};
+	vector<SEffect>*	m_PtrVEffecs{};
 };
