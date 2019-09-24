@@ -31,6 +31,8 @@ using std::stoi;
 using std::stof;
 using std::chrono::steady_clock;
 using std::unordered_map;
+using std::pair;
+using std::make_pair;
 
 enum class ESampler
 {
@@ -45,3 +47,34 @@ enum class EShaderType
 	VertexShader,
 	PixelShader
 };
+
+static XMFLOAT2 operator*(const XMFLOAT2& a, float s)
+{
+	return XMFLOAT2(a.x * s, a.y * s);
+}
+
+static XMFLOAT2 operator/(const XMFLOAT2& a, float s)
+{
+	return XMFLOAT2(a.x / s, a.y / s);
+}
+
+static XMFLOAT2 operator+(const XMFLOAT2& a, const XMFLOAT2& b)
+{
+	return XMFLOAT2(a.x + b.x, a.y + b.y);
+}
+
+static XMFLOAT2 operator-(const XMFLOAT2& a, const XMFLOAT2& b)
+{
+	return XMFLOAT2(a.x - b.x, a.y - b.y);
+}
+
+static float XMFLOAT2GetLength(const XMFLOAT2& a)
+{
+	return sqrt(a.x * a.x + a.y * a.y);
+}
+
+static XMFLOAT2 XMFLOAT2Normalize(const XMFLOAT2& a)
+{
+	float length{ XMFLOAT2GetLength(a) };
+	return (a / length);
+}

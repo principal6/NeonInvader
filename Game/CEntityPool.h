@@ -10,12 +10,24 @@ public:
 
 	CEntity* AddEntity();
 	CEntity* GetEntity(size_t Index);
+	void SetMainSpriteEntity(CEntity* PtrEntity);
 
 	void ApplyPhysics(float DeltaTime);
 	void DrawEntitiesInAddedOrder();
 
-private:
-	CDirectX*						m_DirectX{};
+public:
+	bool FineCollision{ false };
 
-	vector<unique_ptr<CEntity>>		m_vEntities{};
+private:
+	void DetectCoarseCollision();
+	void DetectFineCollision();
+	
+	bool IsPointAInsideBoxB(const XMFLOAT2& PointA, CEntity* EntityB);
+
+private:
+	CDirectX*							m_DirectX{};
+
+	CEntity*							m_EntityMainSprite{};
+	vector<unique_ptr<CEntity>>			m_vEntities{};
+	vector<pair<CEntity*, CEntity*>>	m_vFineCollisionPairs{};
 };

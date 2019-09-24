@@ -183,6 +183,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		v_enemy_ships.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(110, 40), XMFLOAT2(110, 80));
 		v_enemy_ships.back().PtrEntity->Sampler = ESampler::Linear;
 		v_enemy_ships.back().PtrEntity->Visible = false;
+		v_enemy_ships.back().PtrEntity->SetCollisionBox(XMFLOAT2(16, 12));
+		v_enemy_ships.back().PtrEntity->RotationAngle = XM_PIDIV2;
 	}
 
 	CEntity* entity_main_ship{ entity_pool.AddEntity() };
@@ -192,7 +194,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		entity_main_ship->SetRectangleUVRange(XMFLOAT2(0, 40), XMFLOAT2(110, 80));
 		entity_main_ship->Sampler = ESampler::Linear;
 		entity_main_ship->Visible = false;
+		entity_main_ship->SetCollisionBox(XMFLOAT2(27, 20));
 	}
+	entity_pool.SetMainSpriteEntity(entity_main_ship);
 
 	CObject2D obj_title{ &directx };
 	{
@@ -322,6 +326,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 30.0f));
 			ascii_renderer.RenderText("Enemy: 5/" + to_string(max_enemies),
 				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 60.0f));
+			ascii_renderer.RenderText("Fine collision: " + (string)((entity_pool.FineCollision == true) ? "true" : "false"),
+				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 90.0f));
 
 			directx.EndRendering();
 

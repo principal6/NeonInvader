@@ -1,5 +1,21 @@
 #include "CEntity.h"
 
+void CEntity::SetCollisionBox(const XMFLOAT2& HalfSize)
+{
+	m_FineCollisionBoxHalfSize = HalfSize;
+
+	m_vFineCollisionBoxPoints.clear();
+	m_vFineCollisionBoxPoints.emplace_back(XMFLOAT2(-HalfSize.x, +HalfSize.y));
+	m_vFineCollisionBoxPoints.emplace_back(XMFLOAT2(+HalfSize.x, +HalfSize.y));
+	m_vFineCollisionBoxPoints.emplace_back(XMFLOAT2(+HalfSize.x, -HalfSize.y));
+	m_vFineCollisionBoxPoints.emplace_back(XMFLOAT2(-HalfSize.x, -HalfSize.y));
+
+	m_FineCollisionRadius = min(HalfSize.x, HalfSize.y);
+	m_CoarseCollisionRadius = XMFLOAT2GetLength(HalfSize);
+
+	ShouldCollide = true;
+}
+
 SAnimation* CEntity::AddAnimation(const string& AnimationName, size_t TickPerFrame)
 {
 	m_AnimationIndexMap[AnimationName] = m_vAnimations.size();

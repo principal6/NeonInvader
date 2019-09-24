@@ -32,6 +32,8 @@ public:
 	CEntity(CDirectX* DirectX) : CObject2D(DirectX) {}
 	~CEntity() {}
 
+	void SetCollisionBox(const XMFLOAT2& HalfSize);
+
 	SAnimation* AddAnimation(const string& AnimationName, size_t TickPerFrame = 30);
 	void SetAnimation(size_t AnimationIndex);
 	void SetAnimation(const string& AnimationName);
@@ -48,6 +50,7 @@ public:
 public:
 	XMFLOAT2	LinearVelocity{};
 	bool		Visible{ true };
+	bool		ShouldCollide{ false };
 
 private:
 	void UpdateAnimationFrame();
@@ -58,4 +61,9 @@ private:
 	size_t							m_AnimationTick{};
 	ERenderFlipOption				m_AnimationFlip{ ERenderFlipOption::None };
 	unordered_map<string, size_t>	m_AnimationIndexMap{};
+
+	XMFLOAT2						m_FineCollisionBoxHalfSize{};
+	vector<XMFLOAT2>				m_vFineCollisionBoxPoints{};
+	float							m_CoarseCollisionRadius{};
+	float							m_FineCollisionRadius{};
 };
