@@ -336,7 +336,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			directx.EndRendering();
 
-			if (time_now_microsec >= timer_reorientation + 1'000)
+			if (time_now_microsec >= timer_reorientation + 5'000)
 			{
 				neon_invader.ReorientEnemies();
 
