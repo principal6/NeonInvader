@@ -3,7 +3,7 @@
 #include "..\Helper\CTexturePool.h"
 #include "..\Helper\CASCIIRenderer.h"
 #include "CEntityPool.h"
-#include "CLevelLoader.h"
+#include "CStageLoader.h"
 
 enum class EEnemyType
 {
@@ -39,8 +39,9 @@ public:
 	~CNeonInvader() {}
 
 	void InitGame(int Life);
-	void SetGameData(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots, vector<SEffect>& vEffects) noexcept;
-	void SetLevel(SLevelData* PtrLevelData);
+	void SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
+		vector<SEnemy>& vEnemies, vector<SShot>& vShots, vector<SEffect>& vEffects) noexcept;
+	void SetStage(int StageID);
 	void SpawnShot(float ShotSpeed);
 
 	void AnimateEffects();
@@ -48,12 +49,15 @@ public:
 	void ExecuteGame();
 
 public:
+	int GetStage() const noexcept { return m_CurrentStage; }
+	int GetMaxStage() const noexcept { return m_MaxStage; }
 	int GetLife() const noexcept { return m_CurrentLife; }
 	int GetShotCount() const noexcept { return m_CurrentShotCount; }
 	int GetMaxShotCount() const noexcept { return m_CurrentMaxShotCount; }
 	int GetEnemyCount() const noexcept { return m_CurrentEnemyCount; }
 	int GetMaxEnemyCount() const noexcept { return m_CurrentMaxEnemyCount; }
 	bool IsGameOver() const noexcept { return m_GameOver; }
+	bool IsCompleted() const noexcept { return m_GameCompleted; }
 
 private:
 	void PositionEnemyInsideScreen(SEnemy& Enemy);
@@ -80,6 +84,7 @@ private:
 
 	bool				m_GameStarted{ false };
 	bool				m_GameOver{ false };
+	bool				m_GameCompleted{ false };
 	int					m_CollisionIntervalCounter{ KCollisionInterval };
 	int					m_CurrentLife{};
 	int					m_CurrentShotCount{};
@@ -88,6 +93,10 @@ private:
 	int					m_CurrentEnemyCount{};
 	int					m_CurrentMaxEnemyCount{};
 
+	int					m_CurrentStage{};
+	int					m_MaxStage{};
+
+	SStageSetData*		m_PtrStageSet{};
 	CEntity*			m_PtrMainSprite{};
 	vector<SEnemy>*		m_PtrVEnemies{};
 	vector<SShot>*		m_PtrVShots{};

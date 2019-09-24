@@ -7,12 +7,16 @@ void CNeonInvader::InitGame(int Life)
 	m_GameStarted = true;
 }
 
-void CNeonInvader::SetGameData(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots, vector<SEffect>& vEffects) noexcept
+void CNeonInvader::SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
+	vector<SEnemy>& vEnemies, vector<SShot>& vShots, vector<SEffect>& vEffects) noexcept
 {
+	m_PtrStageSet = &StageSetData;
 	m_PtrMainSprite = EntityMainSprite;
 	m_PtrVEnemies = &vEnemies;
 	m_PtrVShots = &vShots;
 	m_PtrVEffecs = &vEffects;
+
+	m_MaxStage = (int)StageSetData.vStages.size() - 1;
 }
 
 void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy)
@@ -122,30 +126,47 @@ void CNeonInvader::RepositionEnemiesOutOfScreen()
 	}
 }
 
-void CNeonInvader::SetLevel(SLevelData* PtrLevelData)
+void CNeonInvader::SetStage(int StageID)
 {
-	assert(PtrLevelData);
+	if (StageID > m_MaxStage)
+	{
+		m_GameOver = true;
+		m_GameCompleted = true;
+		return;
+	}
+
+	SStageData* stage{};
+	for (auto& l : (*m_PtrStageSet).vStages)
+	{
+		if (l.StageID == StageID)
+		{
+			stage = &l;
+		}
+	}
+	assert(stage);
+
+	m_CurrentStage = StageID;
 
 	for (auto& enemy : *m_PtrVEnemies)
 	{
 		enemy.Dead = true;
 	}
 
-	m_CurrentEnemyCount = m_CurrentMaxEnemyCount = PtrLevelData->TotalEnemyCount;
+	m_CurrentEnemyCount = m_CurrentMaxEnemyCount = stage->TotalEnemyCount;
 
-	for (int i = 0; i < PtrLevelData->EnemyCountSmall; ++i)
+	for (int i = 0; i < stage->EnemyCountSmall; ++i)
 	{
-		SpawnEnemy(EEnemyType::Small, 1, PtrLevelData->EnemySpeedFactor);
+		SpawnEnemy(EEnemyType::Small, 1, stage->EnemySpeedFactor);
 	}
 
-	for (int i = 0; i < PtrLevelData->EnemyCountNormal; ++i)
+	for (int i = 0; i < stage->EnemyCountNormal; ++i)
 	{
-		SpawnEnemy(EEnemyType::Normal, 1, PtrLevelData->EnemySpeedFactor * KEnemyNormalSpeedFactor);
+		SpawnEnemy(EEnemyType::Normal, 1, stage->EnemySpeedFactor * KEnemyNormalSpeedFactor);
 	}
 
-	for (int i = 0; i < PtrLevelData->EnemyCountBig; ++i)
+	for (int i = 0; i < stage->EnemyCountBig; ++i)
 	{
-		SpawnEnemy(EEnemyType::Big, 1, PtrLevelData->EnemySpeedFactor * KEnemyBigSpeedFactor);
+		SpawnEnemy(EEnemyType::Big, 1, stage->EnemySpeedFactor * KEnemyBigSpeedFactor);
 	}
 }
 
@@ -206,6 +227,11 @@ void CNeonInvader::ExecuteGame()
 		ClearDeadShots();
 
 		RepositionEnemiesOutOfScreen();
+
+		if (m_CurrentEnemyCount <= 0)
+		{
+			SetStage(m_CurrentStage + 1);
+		}
 
 		if (m_CurrentLife <= 0)
 		{

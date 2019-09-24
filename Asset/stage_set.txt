@@ -1,7 +1,7 @@
-#Total level count
+#Total stage count
 3
 
-#Level ID
+#Stage ID
 0
 #SpeedFactor
 60
@@ -12,7 +12,7 @@
 #Big enemy count
 0
 
-#Level ID
+#Stage ID
 1
 #SpeedFactor
 70
@@ -23,7 +23,7 @@
 #Big enemy count
 0
 
-#Level ID
+#Stage ID
 2
 #SpeedFactor
 80
