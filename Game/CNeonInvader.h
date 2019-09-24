@@ -32,26 +32,28 @@ public:
 	CNeonInvader(const XMFLOAT2& WindowSize) : m_WindowSize{ WindowSize } {}
 	~CNeonInvader() {}
 
-	void InitializeGame(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots);
-
+	void InitGame(int Life);
+	void SetGameData(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots) noexcept;
 	void SetLevel(SLevelData* PtrLevelData);
-	void RepositionEnemiesOutOfScreen();
-	
 	void SpawnShot(float ShotSpeed);
-	void ClearDeadShots();
 
-	void ProcessCollision();
+	void ExecuteGame();
 
 public:
-	int GetLife() { return m_CurrentLife; }
-	int GetShotCount() { return m_CurrentShotCount; }
-	int GetMaxShotCount() { return m_CurrentMaxShotCount; }
-	int GetEnemyCount() { return m_CurrentEnemyCount; }
-	int GetMaxEnemyCount() { return m_CurrentMaxEnemyCount; }
+	int GetLife() const noexcept { return m_CurrentLife; }
+	int GetShotCount() const noexcept { return m_CurrentShotCount; }
+	int GetMaxShotCount() const noexcept { return m_CurrentMaxShotCount; }
+	int GetEnemyCount() const noexcept { return m_CurrentEnemyCount; }
+	int GetMaxEnemyCount() const noexcept { return m_CurrentMaxEnemyCount; }
+	bool IsGameOver() const noexcept { return m_GameOver; }
 
 private:
 	void SpawnEnemy(EEnemyType Type, int Life, float SpeedFactor);
 	void PositionEnemyInsideScreen(SEnemy& Enemy);
+
+	void ProcessCollision();
+	void RepositionEnemiesOutOfScreen();
+	void ClearDeadShots();
 
 public:
 	static constexpr size_t KMaxShotLimit{ 20 };
@@ -65,8 +67,9 @@ private:
 
 	XMFLOAT2 m_WindowSize{};
 
+	bool m_GameOver{ false };
 	int m_CollisionIntervalCounter{ KCollisionInterval };
-	int m_CurrentLife{ 3 };
+	int m_CurrentLife{};
 	int m_CurrentShotCount{};
 	int m_CurrentMaxShotCount{ 3 };
 

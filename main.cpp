@@ -27,6 +27,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CTexture* texture_bg{ texture_pool.AddSharedTexture(KAssetDir + "bg_space_seamless.png") };
 	CTexture* texture_sprite{ texture_pool.AddSharedTexture(KAssetDir + "neon_space_shooter.png") };
 	CTexture* texture_title{ texture_pool.AddSharedTexture(KAssetDir + "title.png") };
+	CTexture* texture_game_over{ texture_pool.AddSharedTexture(KAssetDir + "game_over.png") };
 
 	CNeonInvader neon_invader{ KWindowSize };
 
@@ -69,7 +70,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		entity_main_ship->SetCollisionBox(XMFLOAT2(27, 20));
 	}
 	entity_pool.SetMainSpriteEntity(entity_main_ship);
-	neon_invader.InitializeGame(entity_main_ship, v_enemy_ships, v_main_ship_shots);
+	neon_invader.SetGameData(entity_main_ship, v_enemy_ships, v_main_ship_shots);
 
 	CObject2D obj_bg{ &directx };
 	{
@@ -83,6 +84,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		obj_title.SetTexture(texture_title);
 		obj_title.CreateRectangle(texture_title->GetTextureSize());
 		obj_title.Sampler = ESampler::Linear;
+	}
+	
+	CObject2D obj_game_over{ &directx };
+	{
+		obj_game_over.SetTexture(texture_game_over);
+		obj_game_over.CreateRectangle(texture_game_over->GetTextureSize());
+		obj_game_over.Sampler = ESampler::Linear;
 	}
 
 	CASCIIRenderer ascii_renderer{ &directx };
@@ -102,6 +110,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	bool keys[MAX_PATH]{};
 
 	bool should_show_title{ true };
+	bool should_show_game_over{ false };
+	int main_ship_initial_life{ 3 };
 	float shot_speed{ 400.0f };
 
 	while (true)
@@ -194,10 +204,24 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 					should_show_title = false;
 					entity_main_ship->Visible = true;
 
-					neon_invader.SetLevel(level_loader.GetLevelData(1));
+					neon_invader.SetLevel(level_loader.GetLevelData(0));
+					neon_invader.InitGame(main_ship_initial_life);
 				}
 
 				obj_title.Draw();
+			}
+			else if (should_show_game_over)
+			{
+				if (GetAsyncKeyState(VK_RETURN) < 0)
+				{
+					should_show_game_over = false;
+					entity_main_ship->Visible = true;
+
+					neon_invader.SetLevel(level_loader.GetLevelData(0));
+					neon_invader.InitGame(main_ship_initial_life);
+				}
+
+				obj_game_over.Draw();
 			}
 			
 			ascii_renderer.RenderText("Life: " + to_string(neon_invader.GetLife()),
@@ -209,11 +233,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			directx.EndRendering();
 
-			neon_invader.ProcessCollision();
+			neon_invader.ExecuteGame();
 
-			neon_invader.ClearDeadShots();
-
-			neon_invader.RepositionEnemiesOutOfScreen();
+			if (neon_invader.IsGameOver())
+			{
+				should_show_game_over = true;
+				entity_main_ship->Visible = false;
+			}
 
 			time_prev = time_now;
 		}

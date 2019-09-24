@@ -1,6 +1,12 @@
 #include "CNeonInvader.h"
 
-void CNeonInvader::InitializeGame(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots)
+void CNeonInvader::InitGame(int Life)
+{
+	m_CurrentLife = Life;
+	m_GameOver = false;
+}
+
+void CNeonInvader::SetGameData(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots) noexcept
 {
 	m_PtrMainSprite = EntityMainSprite;
 	m_PtrVEnemies = &vEnemies;
@@ -126,6 +132,8 @@ void CNeonInvader::SetLevel(SLevelData* PtrLevelData)
 
 void CNeonInvader::SpawnShot(float ShotSpeed)
 {
+	if (m_GameOver) return;
+
 	for (size_t i = 0; i < m_CurrentMaxShotCount; ++i)
 	{
 		SShot& shot{ (*m_PtrVShots)[i] };
@@ -149,6 +157,19 @@ void CNeonInvader::SpawnShot(float ShotSpeed)
 			break;
 		}
 	}
+}
+
+void CNeonInvader::ExecuteGame()
+{
+	if (m_GameOver) return;
+
+	ProcessCollision();
+
+	ClearDeadShots();
+
+	RepositionEnemiesOutOfScreen();
+
+	if (m_CurrentLife <= 0) m_GameOver = true;
 }
 
 void CNeonInvader::ClearDeadShots()
