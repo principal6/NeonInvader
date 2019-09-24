@@ -47,6 +47,7 @@ public:
 	void SpawnMainSpriteShot(float ShotSpeed);
 
 	void AnimateEffects();
+	void ReorientEnemies();
 
 	void ExecuteGame();
 
@@ -72,6 +73,7 @@ private:
 
 	void ProcessCollision();
 	void RepositionEnemiesOutOfScreen();
+	void OrientEnemy(SEnemy& Enemy, bool GraduallyOrient = false);
 	void ClearDeadShots();
 
 public:

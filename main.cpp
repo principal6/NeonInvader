@@ -180,6 +180,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	long long timer_movement{};
 	long long timer_shot{};
 	long long timer_game{};
+	long long timer_reorientation{};
 	float delta_time{};
 	bool keys[MAX_PATH]{};
 
@@ -334,6 +335,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			}
 
 			directx.EndRendering();
+
+			if (time_now_microsec >= timer_reorientation + 1'000)
+			{
+				neon_invader.ReorientEnemies();
+
+				timer_reorientation = time_now_microsec;
+			}
 
 			if (time_now_microsec >= timer_game + 500)
 			{

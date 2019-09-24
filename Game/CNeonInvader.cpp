@@ -45,16 +45,7 @@ void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy)
 		break;
 	}
 
-	XMVECTOR dir{ m_PtrMainSprite->WorldPosition.x - Enemy.PtrEntity->WorldPosition.x,
-		m_PtrMainSprite->WorldPosition.y - Enemy.PtrEntity->WorldPosition.y, 0.0f, 0.0f };
-	dir = XMVector2Normalize(dir);
-
-	float cos{ XMVectorGetX(XMVector2Dot(dir, { 0.0f, 1.0f, 0.0f, 0.0f })) };
-	float angle{ acos(cos) };
-	if (XMVectorGetX(dir) > 0) angle = XM_2PI - angle;
-	Enemy.PtrEntity->RotationAngle = angle;
-
-	Enemy.PtrEntity->SetLinearVelocity(dir * Enemy.SpeedFactor);
+	OrientEnemy(Enemy);
 }
 
 void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, int ShotInterval, float SpeedFactor)
@@ -154,6 +145,40 @@ void CNeonInvader::RepositionEnemiesOutOfScreen()
 			enemy.PtrEntity->WorldPosition.y > +m_WindowSize.y / 2 + KEnemySpawnBoundary)
 		{
 			PositionEnemyInsideScreen(enemy);
+		}
+	}
+}
+
+void CNeonInvader::OrientEnemy(SEnemy& Enemy, bool GraduallyOrient)
+{
+	XMVECTOR dir{ m_PtrMainSprite->WorldPosition.x - Enemy.PtrEntity->WorldPosition.x,
+			m_PtrMainSprite->WorldPosition.y - Enemy.PtrEntity->WorldPosition.y, 0.0f, 0.0f };
+	dir = XMVector2Normalize(dir);
+
+	float cos{ XMVectorGetX(XMVector2Dot(dir, { 0.0f, 1.0f, 0.0f, 0.0f })) };
+	float angle{ acos(cos) };
+	if (XMVectorGetX(dir) > 0) angle = XM_2PI - angle;
+	float angle_diff{ angle - Enemy.PtrEntity->RotationAngle };
+
+	if (GraduallyOrient)
+	{
+		Enemy.PtrEntity->RotationAngle += angle_diff * 0.0004f;
+	}
+	else
+	{
+		Enemy.PtrEntity->RotationAngle = angle;
+	}
+
+	Enemy.PtrEntity->SetLinearVelocity(dir * Enemy.SpeedFactor);
+}
+
+void CNeonInvader::ReorientEnemies()
+{
+	for (auto& enemy : *m_PtrVEnemies)
+	{
+		if (!enemy.Dead)
+		{
+			OrientEnemy(enemy, true);
 		}
 	}
 }
