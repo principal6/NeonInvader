@@ -29,7 +29,7 @@ struct SEnemy
 	CEntity* PtrEntity{};
 	float SpeedFactor{};
 	bool Dead{ true };
-	int Life{ 10 };
+	int Life{};
 	int ShotInterval{};
 	int ShotIntervalCounter{};
 };
@@ -87,6 +87,7 @@ private:
 	static constexpr float KEnemyNormalSpeedFactor{ 1.2f };
 	static constexpr float KEnemyBigSpeedFactor{ 1.5f };
 	static constexpr int KCollisionInterval{ 200 };
+	static constexpr int KEnemyShotIntervalDeviance{ 300 };
 
 	XMFLOAT2			m_WindowSize{};
 

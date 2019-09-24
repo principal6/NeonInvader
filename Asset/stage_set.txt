@@ -12,7 +12,7 @@
 #Big enemy count
 0
 #Enemy shot interval
-500
+1000
 
 #Stage ID
 1
@@ -25,7 +25,7 @@
 #Big enemy count
 0
 #Enemy shot interval
-400
+900
 
 #Stage ID
 2
@@ -38,4 +38,4 @@
 #Big enemy count
 1
 #Enemy shot interval
-300
+800

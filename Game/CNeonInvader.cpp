@@ -58,7 +58,7 @@ void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, int ShotInterval, float
 		{
 			enemy.Life = Life;
 			enemy.ShotInterval = ShotInterval;
-			enemy.ShotIntervalCounter = rand() % 100;
+			enemy.ShotIntervalCounter = -rand() % KEnemyShotIntervalDeviance;
 			enemy.SpeedFactor = SpeedFactor;
 
 			PositionEnemyInsideScreen(enemy);
@@ -220,12 +220,12 @@ void CNeonInvader::SetStage(int StageID)
 
 	for (int i = 0; i < stage->EnemyCountNormal; ++i)
 	{
-		SpawnEnemy(EEnemyType::Normal, 1, stage->EnemyShotInterval * 2, stage->EnemySpeedFactor * KEnemyNormalSpeedFactor);
+		SpawnEnemy(EEnemyType::Normal, 2, stage->EnemyShotInterval * 2, stage->EnemySpeedFactor * KEnemyNormalSpeedFactor);
 	}
 
 	for (int i = 0; i < stage->EnemyCountBig; ++i)
 	{
-		SpawnEnemy(EEnemyType::Big, 1, stage->EnemyShotInterval, stage->EnemySpeedFactor * KEnemyBigSpeedFactor);
+		SpawnEnemy(EEnemyType::Big, 4, stage->EnemyShotInterval, stage->EnemySpeedFactor * KEnemyBigSpeedFactor);
 	}
 }
 
@@ -295,7 +295,7 @@ void CNeonInvader::ExecuteGame()
 				if (enemy.ShotIntervalCounter >= enemy.ShotInterval)
 				{
 					SpawnEnemyShot(enemy);
-					enemy.ShotIntervalCounter = rand() % 100;
+					enemy.ShotIntervalCounter = -rand() % KEnemyShotIntervalDeviance;
 				}
 			}
 		}
@@ -373,6 +373,8 @@ void CNeonInvader::ProcessCollision()
 				--m_CurrentShotCount;
 				main_sprite_shot.Dead = true;
 				main_sprite_shot.PtrEntity->Visible = false;
+
+				SpawnEffect(main_sprite_shot.PtrEntity->WorldPosition, 0.4f);
 			}
 		}
 
@@ -383,7 +385,7 @@ void CNeonInvader::ProcessCollision()
 				enemy_shot.Dead = true;
 				enemy_shot.PtrEntity->Visible = false;
 
-				SpawnEffect(m_PtrMainSprite->WorldPosition, 0.5f);
+				SpawnEffect(enemy_shot.PtrEntity->WorldPosition, 0.2f);
 			}
 		}
 	}
