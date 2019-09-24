@@ -583,6 +583,12 @@ void CNeonInvader::ProcessCollision()
 
 					SpawnEffect(enemy.PtrEntity->WorldPosition);
 				}
+				else
+				{
+					m_FMODSystem->playSound(m_SoundExplosionSmall, nullptr, false, &m_FMODChannelEffects);
+
+					SpawnEffect((enemy.PtrEntity->WorldPosition + m_PtrMainSprite->WorldPosition) / 2, 0.2f);
+				}
 			}
 		}
 	}
