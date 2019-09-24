@@ -30,6 +30,8 @@ struct SEnemy
 	float SpeedFactor{};
 	bool Dead{ true };
 	int Life{ 10 };
+	int ShotInterval{};
+	int ShotIntervalCounter{};
 };
 
 class CNeonInvader final
@@ -40,9 +42,9 @@ public:
 
 	void InitGame(int Life);
 	void SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
-		vector<SEnemy>& vEnemies, vector<SShot>& vShots, vector<SEffect>& vEffects) noexcept;
+		vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects) noexcept;
 	void SetStage(int StageID);
-	void SpawnShot(float ShotSpeed);
+	void SpawnMainSpriteShot(float ShotSpeed);
 
 	void AnimateEffects();
 
@@ -62,16 +64,19 @@ public:
 
 private:
 	void PositionEnemyInsideScreen(SEnemy& Enemy);
-	void SpawnEnemy(EEnemyType Type, int Life, float SpeedFactor);
+	void SpawnEnemy(EEnemyType Type, int Life, int Ammo, float SpeedFactor);
 
-	void SpawnEffect(const XMFLOAT2& Position);
+	void SpawnEnemyShot(SEnemy& Enemy, float ShotSpeed = 400.0f);
+
+	void SpawnEffect(const XMFLOAT2& Position, float Scalar = 1.0f);
 
 	void ProcessCollision();
 	void RepositionEnemiesOutOfScreen();
 	void ClearDeadShots();
 
 public:
-	static constexpr size_t KMaxShotLimit{ 20 };
+	static constexpr size_t KMaxMainSpriteShotLimit{ 20 };
+	static constexpr size_t KMaxEnemyShotLimit{ 200 };
 	static constexpr size_t KMaxEnemyLimit{ 30 };
 	static constexpr size_t KMaxEffectLimit{ 40 };
 
@@ -79,7 +84,7 @@ private:
 	static constexpr float KEnemySpawnBoundary{ 30.0f };
 	static constexpr float KEnemyNormalSpeedFactor{ 1.2f };
 	static constexpr float KEnemyBigSpeedFactor{ 1.5f };
-	static constexpr int KCollisionInterval{ 600 };
+	static constexpr int KCollisionInterval{ 200 };
 
 	XMFLOAT2			m_WindowSize{};
 
@@ -100,6 +105,7 @@ private:
 	SStageSetData*		m_PtrStageSet{};
 	CEntity*			m_PtrMainSprite{};
 	vector<SEnemy>*		m_PtrVEnemies{};
-	vector<SShot>*		m_PtrVShots{};
+	vector<SShot>*		m_PtrVMainSpriteShots{};
+	vector<SShot>*		m_PtrVEnemyShots{};
 	vector<SEffect>*	m_PtrVEffecs{};
 };

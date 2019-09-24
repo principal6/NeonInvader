@@ -8,12 +8,13 @@ void CNeonInvader::InitGame(int Life)
 }
 
 void CNeonInvader::SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
-	vector<SEnemy>& vEnemies, vector<SShot>& vShots, vector<SEffect>& vEffects) noexcept
+	vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects) noexcept
 {
 	m_PtrStageSet = &StageSetData;
 	m_PtrMainSprite = EntityMainSprite;
 	m_PtrVEnemies = &vEnemies;
-	m_PtrVShots = &vShots;
+	m_PtrVMainSpriteShots = &vMainSpriteShots;
+	m_PtrVEnemyShots = &vEnemyShots;
 	m_PtrVEffecs = &vEffects;
 
 	m_MaxStage = (int)StageSetData.vStages.size() - 1;
@@ -56,7 +57,7 @@ void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy)
 	Enemy.PtrEntity->SetLinearVelocity(dir * Enemy.SpeedFactor);
 }
 
-void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, float SpeedFactor)
+void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, int ShotInterval, float SpeedFactor)
 {
 	for (size_t i = 0; i < m_CurrentMaxEnemyCount; ++i)
 	{
@@ -65,6 +66,8 @@ void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, float SpeedFactor)
 		if (enemy.Dead)
 		{
 			enemy.Life = Life;
+			enemy.ShotInterval = ShotInterval;
+			enemy.ShotIntervalCounter = rand() % 100;
 			enemy.SpeedFactor = SpeedFactor;
 
 			PositionEnemyInsideScreen(enemy);
@@ -95,7 +98,34 @@ void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, float SpeedFactor)
 	}
 }
 
-void CNeonInvader::SpawnEffect(const XMFLOAT2& Position)
+void CNeonInvader::SpawnEnemyShot(SEnemy& Enemy, float ShotSpeed)
+{
+	if (!m_GameStarted) return;
+	if (m_GameOver) return;
+
+	for (auto& shot : *m_PtrVEnemyShots)
+	{
+		if (shot.Dead)
+		{
+			XMMATRIX mat_rot{ XMMatrixRotationZ(Enemy.PtrEntity->RotationAngle) };
+			XMVECTOR vec{ XMVector2TransformNormal({ 0.0f, 1.0f, 0.0f, 0.0f }, mat_rot) };
+
+			shot.PtrEntity->RotationAngle = Enemy.PtrEntity->RotationAngle;
+			shot.PtrEntity->SetLinearVelocity(vec * ShotSpeed);
+
+			vec *= 30.0f;
+			shot.PtrEntity->WorldPosition.x = Enemy.PtrEntity->WorldPosition.x + XMVectorGetX(vec);
+			shot.PtrEntity->WorldPosition.y = Enemy.PtrEntity->WorldPosition.y + XMVectorGetY(vec);
+
+			shot.PtrEntity->Visible = true;
+			shot.Dead = false;
+
+			break;
+		}
+	}
+}
+
+void CNeonInvader::SpawnEffect(const XMFLOAT2& Position, float Scalar)
 {
 	for (auto& effect : *m_PtrVEffecs)
 	{
@@ -103,6 +133,8 @@ void CNeonInvader::SpawnEffect(const XMFLOAT2& Position)
 		{
 			effect.Dead = false;
 
+			effect.PtrEntity->Scalar.x = Scalar;
+			effect.PtrEntity->Scalar.y = Scalar;
 			effect.PtrEntity->WorldPosition = Position;
 			effect.PtrEntity->Visible = true;
 			effect.PtrEntity->SetAnimation(0, true);
@@ -158,28 +190,28 @@ void CNeonInvader::SetStage(int StageID)
 
 	for (int i = 0; i < stage->EnemyCountSmall; ++i)
 	{
-		SpawnEnemy(EEnemyType::Small, 1, stage->EnemySpeedFactor);
+		SpawnEnemy(EEnemyType::Small, 1, stage->EnemyShotInterval * 3, stage->EnemySpeedFactor);
 	}
 
 	for (int i = 0; i < stage->EnemyCountNormal; ++i)
 	{
-		SpawnEnemy(EEnemyType::Normal, 1, stage->EnemySpeedFactor * KEnemyNormalSpeedFactor);
+		SpawnEnemy(EEnemyType::Normal, 1, stage->EnemyShotInterval * 2, stage->EnemySpeedFactor * KEnemyNormalSpeedFactor);
 	}
 
 	for (int i = 0; i < stage->EnemyCountBig; ++i)
 	{
-		SpawnEnemy(EEnemyType::Big, 1, stage->EnemySpeedFactor * KEnemyBigSpeedFactor);
+		SpawnEnemy(EEnemyType::Big, 1, stage->EnemyShotInterval, stage->EnemySpeedFactor * KEnemyBigSpeedFactor);
 	}
 }
 
-void CNeonInvader::SpawnShot(float ShotSpeed)
+void CNeonInvader::SpawnMainSpriteShot(float ShotSpeed)
 {
 	if (!m_GameStarted) return;
 	if (m_GameOver) return;
 
 	for (size_t i = 0; i < m_CurrentMaxShotCount; ++i)
 	{
-		SShot& shot{ (*m_PtrVShots)[i] };
+		SShot& shot{ (*m_PtrVMainSpriteShots)[i] };
 		if (shot.Dead)
 		{
 			XMMATRIX mat_rot{ XMMatrixRotationZ(m_PtrMainSprite->RotationAngle) };
@@ -230,6 +262,19 @@ void CNeonInvader::ExecuteGame()
 
 		RepositionEnemiesOutOfScreen();
 
+		for (auto& enemy : *m_PtrVEnemies)
+		{
+			if (!enemy.Dead)
+			{
+				++enemy.ShotIntervalCounter;
+				if (enemy.ShotIntervalCounter >= enemy.ShotInterval)
+				{
+					SpawnEnemyShot(enemy);
+					enemy.ShotIntervalCounter = rand() % 100;
+				}
+			}
+		}
+
 		if (m_CurrentEnemyCount <= 0)
 		{
 			SetStage(m_CurrentStage + 1);
@@ -239,7 +284,7 @@ void CNeonInvader::ExecuteGame()
 
 void CNeonInvader::ClearDeadShots()
 {
-	for (auto& i : *m_PtrVShots)
+	for (auto& i : *m_PtrVMainSpriteShots)
 	{
 		if (i.Dead) continue;
 
@@ -296,13 +341,24 @@ void CNeonInvader::ProcessCollision()
 			}
 		}
 
-		for (auto& shot : *m_PtrVShots)
+		for (auto& main_sprite_shot : *m_PtrVMainSpriteShots)
 		{
-			if (shot.PtrEntity->m_Collided)
+			if (main_sprite_shot.PtrEntity->m_Collided)
 			{
 				--m_CurrentShotCount;
-				shot.Dead = true;
-				shot.PtrEntity->Visible = false;
+				main_sprite_shot.Dead = true;
+				main_sprite_shot.PtrEntity->Visible = false;
+			}
+		}
+
+		for (auto& enemy_shot : *m_PtrVEnemyShots)
+		{
+			if (enemy_shot.PtrEntity->m_Collided)
+			{
+				enemy_shot.Dead = true;
+				enemy_shot.PtrEntity->Visible = false;
+
+				SpawnEffect(m_PtrMainSprite->WorldPosition, 0.5f);
 			}
 		}
 	}

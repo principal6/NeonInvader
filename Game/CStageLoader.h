@@ -10,6 +10,7 @@ struct SStageData
 	int EnemyCountNormal{};
 	int EnemyCountBig{};
 	int TotalEnemyCount{};
+	int EnemyShotInterval{};
 };
 
 struct SStageSetData

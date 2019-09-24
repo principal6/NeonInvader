@@ -12,6 +12,7 @@ public:
 	CEntity* GetEntity(size_t Index);
 	void SetMainSpriteEntity(CEntity* PtrEntity);
 	void AddMainSpriteShotEntity(CEntity* PtrEntityShot);
+	void AddEnemyShotEntity(CEntity* PtrEnemyShot);
 	void AddEnemyEntity(CEntity* PtrEntityEnemy);
 
 	void ApplyPhysics(float DeltaTime);
@@ -31,6 +32,7 @@ private:
 
 	CEntity*							m_EntityMainSprite{};
 	vector<CEntity*>					m_vEntityMainSpriteShots{};
+	vector<CEntity*>					m_vEntityEnemyShots{};
 	vector<CEntity*>					m_vEntityEnemies{};
 	vector<unique_ptr<CEntity>>			m_vEntities{};
 	vector<pair<CEntity*, CEntity*>>	m_vFineCollisionPairs{};

@@ -36,7 +36,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	CEntityPool entity_pool{ &directx };
 	vector<SShot> v_main_ship_shots{};
-	for (size_t i = 0; i < neon_invader.KMaxShotLimit; ++i)
+	for (size_t i = 0; i < neon_invader.KMaxMainSpriteShotLimit; ++i)
 	{
 		v_main_ship_shots.emplace_back();
 		v_main_ship_shots.back().PtrEntity = entity_pool.CreateEntity();
@@ -48,6 +48,21 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		v_main_ship_shots.back().PtrEntity->SetCollisionBox(XMFLOAT2(1, 10));
 
 		entity_pool.AddMainSpriteShotEntity(v_main_ship_shots.back().PtrEntity);
+	}
+
+	vector<SShot> v_enemy_shots{};
+	for (size_t i = 0; i < neon_invader.KMaxEnemyShotLimit; ++i)
+	{
+		v_enemy_shots.emplace_back();
+		v_enemy_shots.back().PtrEntity = entity_pool.CreateEntity();
+		v_enemy_shots.back().PtrEntity->SetTexture(texture_sprite);
+		v_enemy_shots.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 40));
+		v_enemy_shots.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(110, 0), XMFLOAT2(110, 40));
+		v_enemy_shots.back().PtrEntity->Sampler = ESampler::Linear;
+		v_enemy_shots.back().PtrEntity->Visible = false;
+		v_enemy_shots.back().PtrEntity->SetCollisionBox(XMFLOAT2(1, 10));
+
+		entity_pool.AddEnemyShotEntity(v_enemy_shots.back().PtrEntity);
 	}
 
 	vector<SEnemy> v_enemy_ships{};
@@ -115,7 +130,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CStageSetLoader stage_set_loader{};
 	stage_set_loader.LoadStageSetFromFile(KAssetDir + "stage_set.txt");
 
-	neon_invader.SetGameData(stage_set_loader.GetStageSetData(), entity_main_ship, v_enemy_ships, v_main_ship_shots, v_effects);
+	neon_invader.SetGameData(stage_set_loader.GetStageSetData(), entity_main_ship, v_enemy_ships, v_main_ship_shots, v_enemy_shots, v_effects);
 
 
 	CObject2D obj_bg{ &directx };
@@ -164,6 +179,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	long long timer_animation{};
 	long long timer_movement{};
 	long long timer_shot{};
+	long long timer_game{};
 	float delta_time{};
 	bool keys[MAX_PATH]{};
 
@@ -239,7 +255,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				if (time_now_microsec >= timer_shot + 300'000)
 				{
-					neon_invader.SpawnShot(shot_speed);
+					neon_invader.SpawnMainSpriteShot(shot_speed);
 
 					timer_shot = time_now_microsec;
 				}
@@ -319,7 +335,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			directx.EndRendering();
 
-			neon_invader.ExecuteGame();
+			if (time_now_microsec >= timer_game + 500)
+			{
+				neon_invader.ExecuteGame();
+
+				timer_game = time_now_microsec;
+			}
 
 			if (neon_invader.IsGameOver())
 			{

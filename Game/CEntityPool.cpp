@@ -25,6 +25,13 @@ void CEntityPool::AddMainSpriteShotEntity(CEntity* PtrEntityShot)
 	m_vEntityMainSpriteShots.emplace_back(PtrEntityShot);
 }
 
+void CEntityPool::AddEnemyShotEntity(CEntity* PtrEnemyShot)
+{
+	assert(PtrEnemyShot);
+
+	m_vEntityEnemyShots.emplace_back(PtrEnemyShot);
+}
+
 void CEntityPool::AddEnemyEntity(CEntity* PtrEntityEnemy)
 {
 	assert(PtrEntityEnemy);
@@ -80,21 +87,38 @@ void CEntityPool::DetectCoarseCollision()
 		}
 	}
 
-	// Main sprite shots vs. Enemy sprites
-	for (auto& shot : m_vEntityMainSpriteShots)
+	// Main sprite vs. Enemy shots
+	for (auto& enemy_shot : m_vEntityEnemyShots)
 	{
-		shot->m_Collided = false;
+		enemy_shot->m_Collided = false;
+
+		if (enemy_shot->ShouldCollide && m_EntityMainSprite->ShouldCollide && enemy_shot->Visible && m_EntityMainSprite->Visible)
+		{
+			XMFLOAT2 diff{ enemy_shot->WorldPosition - m_EntityMainSprite->WorldPosition };
+			float distance{ XMFLOAT2GetLength(diff) };
+
+			if (distance <= enemy_shot->m_CoarseCollisionRadius + m_EntityMainSprite->m_CoarseCollisionRadius)
+			{
+				m_vFineCollisionPairs.emplace_back(enemy_shot, m_EntityMainSprite);
+			}
+		}
+	}
+
+	// Main sprite shots vs. Enemy sprites
+	for (auto& main_sprite_shot : m_vEntityMainSpriteShots)
+	{
+		main_sprite_shot->m_Collided = false;
 
 		for (auto& enemy : m_vEntityEnemies)
 		{
-			if (shot->ShouldCollide && enemy->ShouldCollide && shot->Visible && enemy->Visible)
+			if (main_sprite_shot->ShouldCollide && enemy->ShouldCollide && main_sprite_shot->Visible && enemy->Visible)
 			{
-				XMFLOAT2 diff{ shot->WorldPosition - enemy->WorldPosition };
+				XMFLOAT2 diff{ main_sprite_shot->WorldPosition - enemy->WorldPosition };
 				float distance{ XMFLOAT2GetLength(diff) };
 
-				if (distance <= shot->m_CoarseCollisionRadius + enemy->m_CoarseCollisionRadius)
+				if (distance <= main_sprite_shot->m_CoarseCollisionRadius + enemy->m_CoarseCollisionRadius)
 				{
-					m_vFineCollisionPairs.emplace_back(shot, enemy);
+					m_vFineCollisionPairs.emplace_back(main_sprite_shot, enemy);
 				}
 			}
 		}
