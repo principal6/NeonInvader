@@ -1,6 +1,13 @@
 #include "CNeonInvader.h"
 
-void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy, const CEntity* EntityMainShip)
+void CNeonInvader::InitializeGame(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots)
+{
+	m_PtrMainSprite = EntityMainSprite;
+	m_PtrVEnemies = &vEnemies;
+	m_PtrVShots = &vShots;
+}
+
+void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy)
 {
 	int direction{ rand() % 4 };
 	switch (direction)
@@ -25,8 +32,8 @@ void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy, const CEntity* Entit
 		break;
 	}
 
-	XMVECTOR dir{ EntityMainShip->WorldPosition.x - Enemy.PtrEntity->WorldPosition.x,
-		EntityMainShip->WorldPosition.y - Enemy.PtrEntity->WorldPosition.y, 0.0f, 0.0f };
+	XMVECTOR dir{ m_PtrMainSprite->WorldPosition.x - Enemy.PtrEntity->WorldPosition.x,
+		m_PtrMainSprite->WorldPosition.y - Enemy.PtrEntity->WorldPosition.y, 0.0f, 0.0f };
 	dir = XMVector2Normalize(dir);
 
 	float cos{ XMVectorGetX(XMVector2Dot(dir, { 0.0f, 1.0f, 0.0f, 0.0f })) };
@@ -37,18 +44,18 @@ void CNeonInvader::PositionEnemyInsideScreen(SEnemy& Enemy, const CEntity* Entit
 	Enemy.PtrEntity->SetLinearVelocity(dir * Enemy.SpeedFactor);
 }
 
-void CNeonInvader::SpawnEnemy(vector<SEnemy>& vEnemies, EEnemyType Type, int Life, float SpeedFactor, const CEntity* EntityMainShip)
+void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, float SpeedFactor)
 {
 	for (size_t i = 0; i < m_CurrentMaxEnemyCount; ++i)
 	{
-		SEnemy& enemy{ vEnemies[i] };
+		SEnemy& enemy{ (*m_PtrVEnemies)[i] };
 
 		if (enemy.Dead)
 		{
 			enemy.Life = Life;
 			enemy.SpeedFactor = SpeedFactor;
 
-			PositionEnemyInsideScreen(enemy, EntityMainShip);
+			PositionEnemyInsideScreen(enemy);
 
 			switch (Type)
 			{
@@ -76,58 +83,63 @@ void CNeonInvader::SpawnEnemy(vector<SEnemy>& vEnemies, EEnemyType Type, int Lif
 	}
 }
 
-void CNeonInvader::RepositionEnemiesOutOfScreen(vector<SEnemy>& vEnemies, const CEntity* EntityMainShip)
+void CNeonInvader::RepositionEnemiesOutOfScreen()
 {
-	for (auto& enemy : vEnemies)
+	for (auto& enemy : *m_PtrVEnemies)
 	{
 		if (enemy.PtrEntity->WorldPosition.x < -m_WindowSize.x / 2 - KEnemySpawnBoundary ||
 			enemy.PtrEntity->WorldPosition.x > +m_WindowSize.x / 2 + KEnemySpawnBoundary ||
 			enemy.PtrEntity->WorldPosition.y < -m_WindowSize.y / 2 - KEnemySpawnBoundary ||
 			enemy.PtrEntity->WorldPosition.y > +m_WindowSize.y / 2 + KEnemySpawnBoundary)
 		{
-			PositionEnemyInsideScreen(enemy, EntityMainShip);
+			PositionEnemyInsideScreen(enemy);
 		}
 	}
 }
 
-void CNeonInvader::SetLevel(SLevelData* PtrLevelData, vector<SEnemy>& vEnemies, const CEntity* EntityMainShip)
+void CNeonInvader::SetLevel(SLevelData* PtrLevelData)
 {
 	assert(PtrLevelData);
+
+	for (auto& enemy : *m_PtrVEnemies)
+	{
+		enemy.Dead = true;
+	}
 
 	m_CurrentEnemyCount = m_CurrentMaxEnemyCount = PtrLevelData->TotalEnemyCount;
 
 	for (int i = 0; i < PtrLevelData->EnemyCountSmall; ++i)
 	{
-		SpawnEnemy(vEnemies, EEnemyType::Small, 1, PtrLevelData->EnemySpeedFactor, EntityMainShip);
+		SpawnEnemy(EEnemyType::Small, 1, PtrLevelData->EnemySpeedFactor);
 	}
 
 	for (int i = 0; i < PtrLevelData->EnemyCountNormal; ++i)
 	{
-		SpawnEnemy(vEnemies, EEnemyType::Normal, 1, PtrLevelData->EnemySpeedFactor * KEnemyNormalSpeedFactor, EntityMainShip);
+		SpawnEnemy(EEnemyType::Normal, 1, PtrLevelData->EnemySpeedFactor * KEnemyNormalSpeedFactor);
 	}
 
 	for (int i = 0; i < PtrLevelData->EnemyCountBig; ++i)
 	{
-		SpawnEnemy(vEnemies, EEnemyType::Big, 1, PtrLevelData->EnemySpeedFactor * KEnemyBigSpeedFactor, EntityMainShip);
+		SpawnEnemy(EEnemyType::Big, 1, PtrLevelData->EnemySpeedFactor * KEnemyBigSpeedFactor);
 	}
 }
 
-void CNeonInvader::SpawnShot(vector<SShot>& vShots, float ShotSpeed, const CEntity* EntityMainShip)
+void CNeonInvader::SpawnShot(float ShotSpeed)
 {
 	for (size_t i = 0; i < m_CurrentMaxShotCount; ++i)
 	{
-		SShot& shot{ vShots[i] };
+		SShot& shot{ (*m_PtrVShots)[i] };
 		if (shot.Dead)
 		{
-			XMMATRIX mat_rot{ XMMatrixRotationZ(EntityMainShip->RotationAngle) };
+			XMMATRIX mat_rot{ XMMatrixRotationZ(m_PtrMainSprite->RotationAngle) };
 			XMVECTOR vec{ XMVector2TransformNormal({ 0.0f, 1.0f, 0.0f, 0.0f }, mat_rot) };
 
-			shot.PtrEntity->RotationAngle = EntityMainShip->RotationAngle;
+			shot.PtrEntity->RotationAngle = m_PtrMainSprite->RotationAngle;
 			shot.PtrEntity->SetLinearVelocity(vec * ShotSpeed);
 
 			vec *= 30.0f;
-			shot.PtrEntity->WorldPosition.x = EntityMainShip->WorldPosition.x + XMVectorGetX(vec);
-			shot.PtrEntity->WorldPosition.y = EntityMainShip->WorldPosition.y + XMVectorGetY(vec);
+			shot.PtrEntity->WorldPosition.x = m_PtrMainSprite->WorldPosition.x + XMVectorGetX(vec);
+			shot.PtrEntity->WorldPosition.y = m_PtrMainSprite->WorldPosition.y + XMVectorGetY(vec);
 
 			shot.PtrEntity->Visible = true;
 			shot.Dead = false;
@@ -139,9 +151,9 @@ void CNeonInvader::SpawnShot(vector<SShot>& vShots, float ShotSpeed, const CEnti
 	}
 }
 
-void CNeonInvader::ClearDeadShots(vector<SShot>& vShots)
+void CNeonInvader::ClearDeadShots()
 {
-	for (auto& i : vShots)
+	for (auto& i : *m_PtrVShots)
 	{
 		if (i.Dead) continue;
 
@@ -154,6 +166,48 @@ void CNeonInvader::ClearDeadShots(vector<SShot>& vShots)
 			i.Dead = true;
 
 			--m_CurrentShotCount;
+		}
+	}
+}
+
+void CNeonInvader::ProcessCollision()
+{
+	if (m_CollisionIntervalCounter < KCollisionInterval)
+	{
+		++m_CollisionIntervalCounter;
+		return;
+	}
+	else
+	{
+		if (m_PtrMainSprite->m_Collided)
+		{
+			--m_CurrentLife;
+			m_CollisionIntervalCounter = 0;
+		}
+
+		for (auto& enemy : *m_PtrVEnemies)
+		{
+			if (enemy.PtrEntity->m_Collided)
+			{
+				--enemy.Life;
+
+				if (enemy.Life <= 0)
+				{
+					enemy.Dead = true;
+					enemy.PtrEntity->Visible = false;
+					--m_CurrentEnemyCount;
+				}
+			}
+		}
+
+		for (auto& shot : *m_PtrVShots)
+		{
+			if (shot.PtrEntity->m_Collided)
+			{
+				--m_CurrentShotCount;
+				shot.Dead = true;
+				shot.PtrEntity->Visible = false;
+			}
 		}
 	}
 }

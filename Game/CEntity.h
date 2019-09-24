@@ -27,6 +27,7 @@ struct SAnimation
 class CEntity final : public CObject2D
 {
 	friend class CEntityPool;
+	friend class CNeonInvader;
 
 public:
 	CEntity(CDirectX* DirectX) : CObject2D(DirectX) {}
@@ -66,4 +67,5 @@ private:
 	vector<XMFLOAT2>				m_vFineCollisionBoxPoints{};
 	float							m_CoarseCollisionRadius{};
 	float							m_FineCollisionRadius{};
+	bool							m_Collided{ false };
 };

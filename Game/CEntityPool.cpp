@@ -61,9 +61,13 @@ void CEntityPool::DetectCoarseCollision()
 {
 	m_vFineCollisionPairs.clear();
 
+	m_EntityMainSprite->m_Collided = false;
+
 	// Main sprite vs. Enemy sprites
 	for (auto& enemy : m_vEntityEnemies)
 	{
+		enemy->m_Collided = false;
+
 		if (m_EntityMainSprite->ShouldCollide && enemy->ShouldCollide && m_EntityMainSprite->Visible && enemy->Visible)
 		{
 			XMFLOAT2 diff{ m_EntityMainSprite->WorldPosition - enemy->WorldPosition };
@@ -79,6 +83,8 @@ void CEntityPool::DetectCoarseCollision()
 	// Main sprite shots vs. Enemy sprites
 	for (auto& shot : m_vEntityMainSpriteShots)
 	{
+		shot->m_Collided = false;
+
 		for (auto& enemy : m_vEntityEnemies)
 		{
 			if (shot->ShouldCollide && enemy->ShouldCollide && shot->Visible && enemy->Visible)
@@ -108,6 +114,8 @@ void CEntityPool::DetectFineCollision()
 		if (dist_ab <= a->m_FineCollisionRadius + b->m_FineCollisionRadius)
 		{
 			FineCollision = true;
+			a->m_Collided = b->m_Collided = true;
+
 			continue;
 		}
 
@@ -122,6 +130,8 @@ void CEntityPool::DetectFineCollision()
 			if (IsPointAInsideBoxB(world_a, b))
 			{
 				FineCollision = true;
+				a->m_Collided = b->m_Collided = true;
+
 				continue;
 			}
 		}
@@ -137,6 +147,8 @@ void CEntityPool::DetectFineCollision()
 			if (IsPointAInsideBoxB(world_b, a))
 			{
 				FineCollision = true;
+				a->m_Collided = b->m_Collided = true;
+
 				continue;
 			}
 		}

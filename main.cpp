@@ -69,6 +69,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		entity_main_ship->SetCollisionBox(XMFLOAT2(27, 20));
 	}
 	entity_pool.SetMainSpriteEntity(entity_main_ship);
+	neon_invader.InitializeGame(entity_main_ship, v_enemy_ships, v_main_ship_shots);
 
 	CObject2D obj_bg{ &directx };
 	{
@@ -168,7 +169,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				if (time_now_microsec >= timer_shot + 300'000)
 				{
-					neon_invader.SpawnShot(v_main_ship_shots, shot_speed, entity_main_ship);
+					neon_invader.SpawnShot(shot_speed);
 
 					timer_shot = time_now_microsec;
 				}
@@ -193,29 +194,26 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 					should_show_title = false;
 					entity_main_ship->Visible = true;
 
-					for (auto& i : v_enemy_ships)
-					{
-						i.Dead = true;
-					}
-
-					neon_invader.SetLevel(level_loader.GetLevelData(1), v_enemy_ships, entity_main_ship);
+					neon_invader.SetLevel(level_loader.GetLevelData(1));
 				}
 
 				obj_title.Draw();
 			}
 			
-			ascii_renderer.RenderText("Delta time: " + to_string(delta_time) + "s",
-				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2));
+			ascii_renderer.RenderText("Life: " + to_string(neon_invader.GetLife()),
+				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 10.0f));
 			ascii_renderer.RenderText("Enemy: " + to_string(neon_invader.GetEnemyCount()) + "/" + to_string(neon_invader.GetMaxEnemyCount()),
-				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 30.0f));
+				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 40.0f));
 			ascii_renderer.RenderText("Shots: " + to_string(neon_invader.GetShotCount()) + "/" + to_string(neon_invader.GetMaxShotCount()),
-				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 60.0f));
+				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 70.0f));
 
 			directx.EndRendering();
 
-			neon_invader.ClearDeadShots(v_main_ship_shots);
+			neon_invader.ProcessCollision();
 
-			neon_invader.RepositionEnemiesOutOfScreen(v_enemy_ships, entity_main_ship);
+			neon_invader.ClearDeadShots();
+
+			neon_invader.RepositionEnemiesOutOfScreen();
 
 			time_prev = time_now;
 		}
