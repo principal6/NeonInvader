@@ -67,6 +67,7 @@ private:
 
 	XMFLOAT2 m_WindowSize{};
 
+	bool m_GameStarted{ false };
 	bool m_GameOver{ false };
 	int m_CollisionIntervalCounter{ KCollisionInterval };
 	int m_CurrentLife{};

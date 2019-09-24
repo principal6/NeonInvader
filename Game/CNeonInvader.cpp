@@ -4,6 +4,7 @@ void CNeonInvader::InitGame(int Life)
 {
 	m_CurrentLife = Life;
 	m_GameOver = false;
+	m_GameStarted = true;
 }
 
 void CNeonInvader::SetGameData(CEntity* EntityMainSprite, vector<SEnemy>& vEnemies, vector<SShot>& vShots) noexcept
@@ -163,13 +164,19 @@ void CNeonInvader::ExecuteGame()
 {
 	if (m_GameOver) return;
 
-	ProcessCollision();
+	if (m_GameStarted)
+	{
+		ProcessCollision();
 
-	ClearDeadShots();
+		ClearDeadShots();
 
-	RepositionEnemiesOutOfScreen();
+		RepositionEnemiesOutOfScreen();
 
-	if (m_CurrentLife <= 0) m_GameOver = true;
+		if (m_CurrentLife <= 0)
+		{
+			m_GameOver = true;
+		}
+	}
 }
 
 void CNeonInvader::ClearDeadShots()
