@@ -1,0 +1,35 @@
+#Total level count
+2
+
+#Level ID
+0
+#SpeedFactor
+60
+#Small enemy count
+5
+#Normal enemy count
+0
+#Big enemy count
+0
+
+#Level ID
+1
+#SpeedFactor
+70
+#Small enemy count
+3
+#Normal enemy count
+2
+#Big enemy count
+0
+
+#Level ID
+2
+#SpeedFactor
+80
+#Small enemy count
+2
+#Normal enemy count
+2
+#Big enemy count
+1

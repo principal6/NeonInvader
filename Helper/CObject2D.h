@@ -37,7 +37,7 @@ class CObject2D
 {
 public:
 	CObject2D(CDirectX* DirectX) : m_DirectX{ DirectX } { assert(m_DirectX); }
-	~CObject2D() {}
+	virtual ~CObject2D() {}
 
 	virtual void Create(const vector<SVertex2D>& vVertices, const vector<SIndex>& vIndices, bool IsDynamic = true);
 	virtual void CreateRectangle(const XMFLOAT2& RectangleSize, bool IsDynamic = true);

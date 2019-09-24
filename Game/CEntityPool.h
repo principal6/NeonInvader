@@ -11,6 +11,8 @@ public:
 	CEntity* AddEntity();
 	CEntity* GetEntity(size_t Index);
 	void SetMainSpriteEntity(CEntity* PtrEntity);
+	void AddMainSpriteShotEntity(CEntity* PtrEntityShot);
+	void AddEnemyEntity(CEntity* PtrEntityEnemy);
 
 	void ApplyPhysics(float DeltaTime);
 	void DrawEntitiesInAddedOrder();
@@ -28,6 +30,8 @@ private:
 	CDirectX*							m_DirectX{};
 
 	CEntity*							m_EntityMainSprite{};
+	vector<CEntity*>					m_vEntityMainSpriteShots{};
+	vector<CEntity*>					m_vEntityEnemies{};
 	vector<unique_ptr<CEntity>>			m_vEntities{};
 	vector<pair<CEntity*, CEntity*>>	m_vFineCollisionPairs{};
 };

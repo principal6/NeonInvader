@@ -126,6 +126,8 @@
   <ItemGroup>
     <ClCompile Include="Game\CEntity.cpp" />
     <ClCompile Include="Game\CEntityPool.cpp" />
+    <ClCompile Include="Game\CLevelLoader.cpp" />
+    <ClCompile Include="Game\CNeonInvader.cpp" />
     <ClCompile Include="Helper\CASCIIRenderer.cpp" />
     <ClCompile Include="Helper\CConstantBuffer.cpp" />
     <ClCompile Include="Helper\CDirectX.cpp" />
@@ -159,6 +161,8 @@
     <ClInclude Include="DirectXTK\XboxDDSTextureLoader.h" />
     <ClInclude Include="Game\CEntity.h" />
     <ClInclude Include="Game\CEntityPool.h" />
+    <ClInclude Include="Game\CLevelLoader.h" />
+    <ClInclude Include="Game\CNeonInvader.h" />
     <ClInclude Include="Helper\CASCIIRenderer.h" />
     <ClInclude Include="Helper\CConstantBuffer.h" />
     <ClInclude Include="Helper\CDirectX.h" />

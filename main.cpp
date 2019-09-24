@@ -1,133 +1,8 @@
-#include "Game\CEntityPool.h"
-#include "Helper\CTexturePool.h"
-#include "Helper\CASCIIRenderer.h"
+#include "Game\CNeonInvader.h"
 
-static constexpr float KEnemySpawnBoundary{ 30.0f };
-static constexpr size_t KMaxShotLimit{ 20 };
-static constexpr size_t KMaxEnemyLimit{ 30 };
 static constexpr XMFLOAT2 KWindowSize{ 960.0f, 540.0f };
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-struct SShot
-{
-	CEntity* PtrEntity{};
-	bool Dead{ true };
-};
-
-struct SEnemy
-{
-	CEntity* PtrEntity{};
-	bool Dead{ true };
-	int Life{ 10 };
-};
-
-void SpawnEnemy(size_t MaxEnemies, vector<SEnemy>& vEnemies, int Life, float SpeedFactor, const CEntity* EntityMainShip)
-{
-	for (size_t i = 0; i < MaxEnemies; ++i)
-	{
-		SEnemy& enemy{ vEnemies[i] };
-
-		if (enemy.Dead)
-		{
-			enemy.Life = Life;
-
-			int direction{ rand() % 4 };
-			switch (direction)
-			{
-			case 0:
-				enemy.PtrEntity->WorldPosition.x = ((float)(rand() % 101) / 100.0f) * KWindowSize.x - (KWindowSize.x / 2);
-				enemy.PtrEntity->WorldPosition.y = -KWindowSize.y / 2 - KEnemySpawnBoundary;
-				break;
-			case 1:
-				enemy.PtrEntity->WorldPosition.x = -KWindowSize.x / 2 - KEnemySpawnBoundary;
-				enemy.PtrEntity->WorldPosition.y = ((float)(rand() % 101) / 100.0f) * KWindowSize.y - (KWindowSize.y / 2);
-				break;
-			case 2:
-				enemy.PtrEntity->WorldPosition.x = ((float)(rand() % 101) / 100.0f) * KWindowSize.x - (KWindowSize.x / 2);
-				enemy.PtrEntity->WorldPosition.y = +KWindowSize.y / 2 + KEnemySpawnBoundary;
-				break;
-			case 3:
-				enemy.PtrEntity->WorldPosition.x = +KWindowSize.x / 2 + KEnemySpawnBoundary;
-				enemy.PtrEntity->WorldPosition.y = ((float)(rand() % 101) / 100.0f) * KWindowSize.y - (KWindowSize.y / 2);
-				break;
-			default:
-				break;
-			}
-
-			XMVECTOR dir{ EntityMainShip->WorldPosition.x - enemy.PtrEntity->WorldPosition.x,
-				EntityMainShip->WorldPosition.y - enemy.PtrEntity->WorldPosition.y, 0.0f, 0.0f };
-			dir = XMVector2Normalize(dir);
-
-			float cos{ XMVectorGetX(XMVector2Dot(dir, { 0.0f, 1.0f, 0.0f, 0.0f })) };
-			float angle{ acos(cos) };
-			if (XMVectorGetX(dir) > 0) angle = XM_2PI - angle;
-			enemy.PtrEntity->RotationAngle = angle;
-			
-			enemy.PtrEntity->SetLinearVelocity(dir * SpeedFactor);
-
-			enemy.PtrEntity->Visible = true;
-			enemy.Dead = false;
-
-			break;
-		}
-	}
-}
-
-void SpawnShot(size_t MaxShots, vector<SShot>& vShots, float ShotSpeed, const CEntity* EntityMainShip)
-{
-	for (size_t i = 0; i < MaxShots; ++i)
-	{
-		SShot& shot{ vShots[i] };
-		if (shot.Dead)
-		{
-			XMMATRIX mat_rot{ XMMatrixRotationZ(EntityMainShip->RotationAngle) };
-			XMVECTOR vec{ XMVector2TransformNormal({ 0.0f, 1.0f, 0.0f, 0.0f }, mat_rot) };
-
-			shot.PtrEntity->RotationAngle = EntityMainShip->RotationAngle;
-			shot.PtrEntity->SetLinearVelocity(vec * ShotSpeed);
-
-			vec *= 30.0f;
-			shot.PtrEntity->WorldPosition.x = EntityMainShip->WorldPosition.x + XMVectorGetX(vec);
-			shot.PtrEntity->WorldPosition.y = EntityMainShip->WorldPosition.y + XMVectorGetY(vec);
-
-			shot.PtrEntity->Visible = true;
-			shot.Dead = false;
-
-			break;
-		}
-	}
-}
-
-void ClearEnemyOutOfBoundary(vector<SEnemy>& vEnemies)
-{
-	for (auto& i : vEnemies)
-	{
-		if (i.PtrEntity->WorldPosition.x < -KWindowSize.x / 2 - KEnemySpawnBoundary ||
-			i.PtrEntity->WorldPosition.x > +KWindowSize.x / 2 + KEnemySpawnBoundary ||
-			i.PtrEntity->WorldPosition.y < -KWindowSize.y / 2 - KEnemySpawnBoundary ||
-			i.PtrEntity->WorldPosition.y > +KWindowSize.y / 2 + KEnemySpawnBoundary)
-		{
-			i.PtrEntity->Visible = false;
-			i.Dead = true;
-		}
-	}
-}
-
-void ClearDeadShots(vector<SShot>& vShots)
-{
-	for (auto& i : vShots)
-	{
-		if (i.PtrEntity->WorldPosition.x < -KWindowSize.x / 2 - 20.0f ||
-			i.PtrEntity->WorldPosition.x > +KWindowSize.x / 2 + 20.0f ||
-			i.PtrEntity->WorldPosition.y < -KWindowSize.y / 2 - 20.0f ||
-			i.PtrEntity->WorldPosition.y > +KWindowSize.y / 2 + 20.0f)
-		{
-			i.PtrEntity->Visible = false;
-			i.Dead = true;
-		}
-	}
-}
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPTSTR lpCmdLine, _In_ int nShowCmd)
 {
@@ -153,16 +28,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CTexture* texture_sprite{ texture_pool.AddSharedTexture(KAssetDir + "neon_space_shooter.png") };
 	CTexture* texture_title{ texture_pool.AddSharedTexture(KAssetDir + "title.png") };
 
-	CEntityPool entity_pool{ &directx };
-	CEntity* entity_bg{ entity_pool.AddEntity() };
-	{
-		entity_bg->SetTexture(texture_bg);
-		entity_bg->CreateRectangle(texture_bg->GetTextureSize());
-		entity_bg->Sampler = ESampler::Point;
-	}
+	CNeonInvader neon_invader{ KWindowSize };
 
+	CEntityPool entity_pool{ &directx };
 	vector<SShot> v_main_ship_shots{};
-	for (size_t i = 0; i < KMaxShotLimit; ++i)
+	for (size_t i = 0; i < neon_invader.KMaxShotLimit; ++i)
 	{
 		v_main_ship_shots.emplace_back();
 		v_main_ship_shots.back().PtrEntity = entity_pool.AddEntity();
@@ -171,20 +41,22 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		v_main_ship_shots.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(110, 40));
 		v_main_ship_shots.back().PtrEntity->Sampler = ESampler::Linear;
 		v_main_ship_shots.back().PtrEntity->Visible = false;
+		v_main_ship_shots.back().PtrEntity->SetCollisionBox(XMFLOAT2(1, 10));
+
+		entity_pool.AddMainSpriteShotEntity(v_main_ship_shots.back().PtrEntity);
 	}
 
 	vector<SEnemy> v_enemy_ships{};
-	for (size_t i = 0; i < KMaxEnemyLimit; ++i)
+	for (size_t i = 0; i < neon_invader.KMaxEnemyLimit; ++i)
 	{
 		v_enemy_ships.emplace_back();
 		v_enemy_ships.back().PtrEntity = entity_pool.AddEntity();
 		v_enemy_ships.back().PtrEntity->SetTexture(texture_sprite);
 		v_enemy_ships.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 80));
-		v_enemy_ships.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(110, 40), XMFLOAT2(110, 80));
 		v_enemy_ships.back().PtrEntity->Sampler = ESampler::Linear;
 		v_enemy_ships.back().PtrEntity->Visible = false;
-		v_enemy_ships.back().PtrEntity->SetCollisionBox(XMFLOAT2(16, 12));
-		v_enemy_ships.back().PtrEntity->RotationAngle = XM_PIDIV2;
+
+		entity_pool.AddEnemyEntity(v_enemy_ships.back().PtrEntity);
 	}
 
 	CEntity* entity_main_ship{ entity_pool.AddEntity() };
@@ -198,6 +70,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 	entity_pool.SetMainSpriteEntity(entity_main_ship);
 
+	CObject2D obj_bg{ &directx };
+	{
+		obj_bg.SetTexture(texture_bg);
+		obj_bg.CreateRectangle(texture_bg->GetTextureSize());
+		obj_bg.Sampler = ESampler::Point;
+	}
+
 	CObject2D obj_title{ &directx };
 	{
 		obj_title.SetTexture(texture_title);
@@ -208,6 +87,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CASCIIRenderer ascii_renderer{ &directx };
 	ascii_renderer.Create(100, KAssetDir, "charset_d2coding_20_info.txt", 0.8f);
 
+	CLevelLoader level_loader{};
+	level_loader.LoadLevelSetFromFile(KAssetDir + "level_set.txt");
+
 	steady_clock clock{};
 	long long time_prev{ clock.now().time_since_epoch().count() };
 	long long time_now{};
@@ -217,10 +99,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	long long timer_shot{};
 	float delta_time{};
 	bool keys[MAX_PATH]{};
-	size_t max_shots{ 3 };
-	size_t max_enemies{ 5 };
-	float shot_speed{ 400.0f };
+
 	bool should_show_title{ true };
+	float shot_speed{ 400.0f };
+
 	while (true)
 	{
 		static MSG msg{};
@@ -286,7 +168,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				if (time_now_microsec >= timer_shot + 300'000)
 				{
-					SpawnShot(max_shots, v_main_ship_shots, shot_speed, entity_main_ship);
+					neon_invader.SpawnShot(v_main_ship_shots, shot_speed, entity_main_ship);
 
 					timer_shot = time_now_microsec;
 				}
@@ -294,12 +176,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			if (time_now_microsec >= timer_animation + 1'500)
 			{
-				SpawnEnemy(max_enemies, v_enemy_ships, 10, 100.0f, entity_main_ship);
-
 				timer_animation = time_now_microsec;
 			}
 
 			directx.BeginRendering(KClearColor);
+
+			obj_bg.Draw();
 
 			entity_pool.ApplyPhysics(delta_time);
 			entity_pool.DrawEntitiesInAddedOrder();
@@ -315,6 +197,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 					{
 						i.Dead = true;
 					}
+
+					neon_invader.SetLevel(level_loader.GetLevelData(1), v_enemy_ships, entity_main_ship);
 				}
 
 				obj_title.Draw();
@@ -322,17 +206,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			
 			ascii_renderer.RenderText("Delta time: " + to_string(delta_time) + "s",
 				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2));
-			ascii_renderer.RenderText("Rotation angle: " + to_string(entity_main_ship->RotationAngle),
+			ascii_renderer.RenderText("Enemy: " + to_string(neon_invader.GetEnemyCount()) + "/" + to_string(neon_invader.GetMaxEnemyCount()),
 				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 30.0f));
-			ascii_renderer.RenderText("Enemy: 5/" + to_string(max_enemies),
+			ascii_renderer.RenderText("Shots: " + to_string(neon_invader.GetShotCount()) + "/" + to_string(neon_invader.GetMaxShotCount()),
 				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 60.0f));
-			ascii_renderer.RenderText("Fine collision: " + (string)((entity_pool.FineCollision == true) ? "true" : "false"),
-				XMFLOAT2(-KWindowSize.x / 2, KWindowSize.y / 2 - 90.0f));
 
 			directx.EndRendering();
 
-			ClearDeadShots(v_main_ship_shots);
-			ClearEnemyOutOfBoundary(v_enemy_ships);
+			neon_invader.ClearDeadShots(v_main_ship_shots);
+
+			neon_invader.RepositionEnemiesOutOfScreen(v_enemy_ships, entity_main_ship);
 
 			time_prev = time_now;
 		}

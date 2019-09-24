@@ -13,7 +13,23 @@ CEntity* CEntityPool::GetEntity(size_t Index)
 
 void CEntityPool::SetMainSpriteEntity(CEntity* PtrEntity)
 {
+	assert(PtrEntity);
+
 	m_EntityMainSprite = PtrEntity;
+}
+
+void CEntityPool::AddMainSpriteShotEntity(CEntity* PtrEntityShot)
+{
+	assert(PtrEntityShot);
+
+	m_vEntityMainSpriteShots.emplace_back(PtrEntityShot);
+}
+
+void CEntityPool::AddEnemyEntity(CEntity* PtrEntityEnemy)
+{
+	assert(PtrEntityEnemy);
+
+	m_vEntityEnemies.emplace_back(PtrEntityEnemy);
 }
 
 void CEntityPool::ApplyPhysics(float DeltaTime)
@@ -45,21 +61,35 @@ void CEntityPool::DetectCoarseCollision()
 {
 	m_vFineCollisionPairs.clear();
 
-	for (size_t i = 0; i < m_vEntities.size(); ++i)
+	// Main sprite vs. Enemy sprites
+	for (auto& enemy : m_vEntityEnemies)
 	{
-		CEntity* a{ m_EntityMainSprite };
-		CEntity* b{ m_vEntities[i].get() };
-
-		if (a == b) continue;
-
-		if (a->ShouldCollide && b->ShouldCollide && a->Visible && b->Visible)
+		if (m_EntityMainSprite->ShouldCollide && enemy->ShouldCollide && m_EntityMainSprite->Visible && enemy->Visible)
 		{
-			XMFLOAT2 diff{ a->WorldPosition - b->WorldPosition };
+			XMFLOAT2 diff{ m_EntityMainSprite->WorldPosition - enemy->WorldPosition };
 			float distance{ XMFLOAT2GetLength(diff) };
 
-			if (distance <= a->m_CoarseCollisionRadius + b->m_CoarseCollisionRadius)
+			if (distance <= m_EntityMainSprite->m_CoarseCollisionRadius + enemy->m_CoarseCollisionRadius)
 			{
-				m_vFineCollisionPairs.emplace_back(a, b);
+				m_vFineCollisionPairs.emplace_back(m_EntityMainSprite, enemy);
+			}
+		}
+	}
+
+	// Main sprite shots vs. Enemy sprites
+	for (auto& shot : m_vEntityMainSpriteShots)
+	{
+		for (auto& enemy : m_vEntityEnemies)
+		{
+			if (shot->ShouldCollide && enemy->ShouldCollide && shot->Visible && enemy->Visible)
+			{
+				XMFLOAT2 diff{ shot->WorldPosition - enemy->WorldPosition };
+				float distance{ XMFLOAT2GetLength(diff) };
+
+				if (distance <= shot->m_CoarseCollisionRadius + enemy->m_CoarseCollisionRadius)
+				{
+					m_vFineCollisionPairs.emplace_back(shot, enemy);
+				}
 			}
 		}
 	}
