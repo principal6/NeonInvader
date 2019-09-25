@@ -486,6 +486,8 @@ void CNeonInvader::ProcessCollision()
 		{
 			if (item.PtrEntity->m_Collided)
 			{
+				m_Score += KItemScore;
+
 				item.Dead = true;
 				item.PtrEntity->Visible = false;
 
@@ -571,10 +573,14 @@ void CNeonInvader::ProcessCollision()
 		{
 			if (enemy.PtrEntity->m_Collided)
 			{
+				m_Score += KEnemyHitScore;
+
 				--enemy.Life;
 
 				if (enemy.Life <= 0)
 				{
+					m_Score += KEnemyKillScore;
+
 					enemy.Dead = true;
 					enemy.PtrEntity->Visible = false;
 					--m_CurrentEnemyCount;

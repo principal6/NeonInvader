@@ -79,6 +79,7 @@ public:
 	int GetMaxShotCount() const noexcept { return m_CurrentMaxAmmoCount; }
 	int GetEnemyCount() const noexcept { return m_CurrentEnemyCount; }
 	int GetMaxEnemyCount() const noexcept { return m_CurrentMaxEnemyCount; }
+	int GetScore() const noexcept { return m_Score; }
 	bool IsGameRunning() const noexcept { return m_GameStarted; }
 	bool IsGameOver() const noexcept { return m_GameOver; }
 	bool IsCompleted() const noexcept { return m_GameCompleted; }
@@ -123,6 +124,11 @@ private:
 	static constexpr int KDefaultAmmoCount{ 4 };
 	static constexpr int KMaxAmmoLimit{ 15 };
 
+private:
+	static constexpr int KEnemyHitScore{ 5 };
+	static constexpr int KEnemyKillScore{ 20 };
+	static constexpr int KItemScore{ 10 };
+
 	XMFLOAT2			m_WindowSize{};
 
 	bool				m_GameStarted{ false };
@@ -145,6 +151,8 @@ private:
 	int					m_MaxStage{};
 
 	float				m_CurrentBulletSpeed{ KDefaultBulletSpeed };
+
+	int					m_Score{};
 
 	SStageSetData*		m_PtrStageSet{};
 	CEntity*			m_PtrMainSprite{};
