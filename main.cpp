@@ -32,6 +32,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CTexture* texture_explosion{ texture_pool.AddSharedTexture(KAssetDir + "explosion_196x190_by_Bleed.png") };
 	CTexture* texture_guideline{ texture_pool.AddSharedTexture(KAssetDir + "guideline.png") };
 	CTexture* texture_itemset{ texture_pool.AddSharedTexture(KAssetDir + "itemset.png") };
+	CTexture* texture_ui{ texture_pool.AddSharedTexture(KAssetDir + "ui.png") };
 
 	CNeonInvader neon_invader{ KWindowSize };
 
@@ -90,8 +91,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			entity = entity_pool.CreateEntity();
 
 			entity->SetTexture(texture_itemset);
-			entity->CreateRectangle(XMFLOAT2(60, 60));
-			entity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(60, 60));
+			entity->CreateRectangle(XMFLOAT2(100, 100));
+			entity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(100, 100));
 			entity->SetCollisionBox(XMFLOAT2(26, 26));
 			entity->Sampler = ESampler::Linear;
 			entity->Visible = false;
@@ -191,6 +192,35 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		obj_guideline.Sampler = ESampler::Linear;
 	}
 
+	CObject2D obj_ammo{ &directx };
+	{
+		obj_ammo.SetTexture(texture_ui);
+		obj_ammo.CreateRectangle(XMFLOAT2(50, 50));
+		obj_ammo.SetRectangleUVRange(XMFLOAT2(100, 0), XMFLOAT2(50, 50));
+		obj_ammo.Sampler = ESampler::Linear;
+		obj_ammo.WorldPosition.x = -KWindowSize.x / 2 + 44.0f;
+		obj_ammo.WorldPosition.y = KWindowSize.y / 2 - 90.0f;
+	}
+
+	static constexpr XMFLOAT2 obj_life_size{ 50.0f, 50.0f };
+	static constexpr float obj_life_interval{ obj_life_size.x + 10.0f };
+	vector<CObject2D> obj_lives{};
+	{
+		float offset_x{ - obj_life_interval * (0.5f * (neon_invader.KMaxLifeLimit - 1)) };
+		for (int i = 0; i < neon_invader.KMaxLifeLimit; ++i)
+		{
+			obj_lives.emplace_back(&directx);
+
+			auto& obj{ obj_lives.back() };
+			obj.SetTexture(texture_ui);
+			obj.CreateRectangle(obj_life_size);
+			obj.SetRectangleUVRange(XMFLOAT2(obj_life_size.x, 0), obj_life_size);
+			obj.Sampler = ESampler::Linear;
+			obj.WorldPosition.x = offset_x + obj_life_interval * i;
+			obj.WorldPosition.y = KWindowSize.y / 2 - obj_life_size.y + 10.0f;
+		}
+	}
+
 	CASCIIRenderer ascii_renderer{ &directx };
 	ascii_renderer.Create(100, KAssetDir, "charset_d2coding_20_info.txt", 0.8f);
 
@@ -210,7 +240,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	bool should_show_game_over{ false };
 	bool should_show_completed{ false };
 	bool should_draw_guildeline{ false };
-	int main_ship_initial_life{ 3 };
 
 	neon_invader.InitAudio(KAssetDir);
 
@@ -311,7 +340,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 					should_show_title = false;
 					entity_main_ship->Visible = true;
 
-					neon_invader.InitGame(main_ship_initial_life);
+					neon_invader.InitGame();
 					neon_invader.SetStage(0);
 				}
 
@@ -321,12 +350,26 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				ascii_renderer.RenderText("Stage: " + to_string(neon_invader.GetStage() + 1) + "/" + to_string(neon_invader.GetMaxStage() + 1),
 					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 010.0f));
-				ascii_renderer.RenderText("Life : " + to_string(neon_invader.GetLife()),
-					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 040.0f));
 				ascii_renderer.RenderText("Enemy: " + to_string(neon_invader.GetEnemyCount()) + "/" + to_string(neon_invader.GetMaxEnemyCount()),
+					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 040.0f));
+				ascii_renderer.RenderText("     : " + to_string(neon_invader.GetShotCount()) + "/" + to_string(neon_invader.GetMaxShotCount()),
 					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 070.0f));
-				ascii_renderer.RenderText("Shots: " + to_string(neon_invader.GetShotCount()) + "/" + to_string(neon_invader.GetMaxShotCount()),
-					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 100.0f));
+
+				obj_ammo.Draw();
+
+				int life{ neon_invader.GetLife() };
+				for (int i = 0; i < neon_invader.KMaxLifeLimit; ++i)
+				{
+					if (i < life)
+					{
+						obj_lives[i].SetRectangleUVRange(XMFLOAT2(50, 0), obj_life_size);
+					}
+					else
+					{
+						obj_lives[i].SetRectangleUVRange(XMFLOAT2(0, 0), obj_life_size);
+					}
+					obj_lives[i].Draw();
+				}
 			}
 			
 			if (should_show_game_over)
@@ -336,7 +379,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 					should_show_game_over = false;
 					entity_main_ship->Visible = true;
 
-					neon_invader.InitGame(main_ship_initial_life);
+					neon_invader.InitGame();
 					neon_invader.SetStage(0);
 				}
 
@@ -348,7 +391,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				{
 					should_show_completed = false;
 
-					neon_invader.InitGame(main_ship_initial_life);
+					neon_invader.InitGame();
 					neon_invader.SetStage(0);
 				}
 

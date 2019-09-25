@@ -57,7 +57,7 @@ public:
 
 	void InitAudio(const string& AssetDir);
 	void ReleaseAudio();
-	void InitGame(int Life);
+	void InitGame();
 	void SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
 		vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects, vector<SItem>& vItems) noexcept;
 	void SetStage(int StageID);
@@ -75,8 +75,8 @@ public:
 	int GetStage() const noexcept { return m_CurrentStage; }
 	int GetMaxStage() const noexcept { return m_MaxStage; }
 	int GetLife() const noexcept { return m_CurrentLife; }
-	int GetShotCount() const noexcept { return m_CurrentShotCount; }
-	int GetMaxShotCount() const noexcept { return m_CurrentMaxShotCount; }
+	int GetShotCount() const noexcept { return m_CurrentUsedAmmoCount; }
+	int GetMaxShotCount() const noexcept { return m_CurrentMaxAmmoCount; }
 	int GetEnemyCount() const noexcept { return m_CurrentEnemyCount; }
 	int GetMaxEnemyCount() const noexcept { return m_CurrentMaxEnemyCount; }
 	bool IsGameRunning() const noexcept { return m_GameStarted; }
@@ -105,23 +105,23 @@ public:
 	static constexpr size_t KMaxEnemyShotLimit{ 200 };
 	static constexpr size_t KMaxEnemyLimit{ 30 };
 	static constexpr size_t KMaxEffectLimit{ 40 };
-	static constexpr size_t KMaxItemLimit{ 10 };	
+	static constexpr size_t KMaxItemLimit{ 10 };
+	static constexpr int KMaxLifeLimit{ 5 };
 
 private:
 	static constexpr float KScreenSpawnBoundary{ 30.0f };
 	static constexpr float KEnemyNormalSpeedFactor{ 1.2f };
 	static constexpr float KEnemyBigSpeedFactor{ 1.5f };
-	static constexpr float KItemSpeedFactor{ 180.0f };
+	static constexpr float KItemSpeedFactor{ 120.0f };
 	static constexpr float KDefaultBulletSpeed{ 200.0f };
 	static constexpr float KMaxBulletSpeed{ 600.0f };
 	static constexpr int KCollisionInterval{ 200 };
 	static constexpr int KEnemyShotIntervalDeviance{ 300 };
 	static constexpr int KItemTypeCount{ 4 };
-	static constexpr int KMaxAmmoLimit{ 10 };
-	static constexpr int KMaxLifeLimit{ 5 };
 	static constexpr int KDefaultReloadInterval{ 400 };
 	static constexpr int KMinReloadInterval{ 50 };
-	static constexpr int KDefaultMaxShotCount{ 3 };
+	static constexpr int KDefaultAmmoCount{ 4 };
+	static constexpr int KMaxAmmoLimit{ 15 };
 
 	XMFLOAT2			m_WindowSize{};
 
@@ -130,8 +130,8 @@ private:
 	bool				m_GameCompleted{ false };
 	int					m_CollisionIntervalCounter{ KCollisionInterval };
 	int					m_CurrentLife{};
-	int					m_CurrentShotCount{};
-	int					m_CurrentMaxShotCount{ KDefaultMaxShotCount };
+	int					m_CurrentUsedAmmoCount{};
+	int					m_CurrentMaxAmmoCount{ KDefaultAmmoCount };
 	int					m_CurrentStageItemSpawningCount{};
 	int					m_CurrentStageMaxItemSpawningCount{};
 

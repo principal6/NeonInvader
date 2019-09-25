@@ -33,14 +33,14 @@ void CNeonInvader::ReleaseAudio()
 	m_FMODSystem->release();
 }
 
-void CNeonInvader::InitGame(int Life)
+void CNeonInvader::InitGame()
 {
-	m_CurrentLife = Life;
+	m_CurrentLife = KMaxLifeLimit;
 	m_GameOver = false;
 	m_GameStarted = true;
 
 	m_CurrentBulletSpeed = KDefaultBulletSpeed;
-	m_CurrentMaxShotCount = KDefaultMaxShotCount;
+	m_CurrentMaxAmmoCount = KDefaultAmmoCount;
 	m_CurrentReloadInterval = KDefaultReloadInterval;
 }
 
@@ -321,7 +321,7 @@ bool CNeonInvader::SpawnMainSpriteShot()
 	if (m_CurrentReloadIntervalCounter < m_CurrentReloadInterval) return false;
 
 	bool result{ false };
-	for (size_t i = 0; i < m_CurrentMaxShotCount; ++i)
+	for (size_t i = 0; i < m_CurrentMaxAmmoCount; ++i)
 	{
 		SShot& shot{ (*m_PtrVMainSpriteShots)[i] };
 		if (shot.Dead)
@@ -339,7 +339,7 @@ bool CNeonInvader::SpawnMainSpriteShot()
 			shot.PtrEntity->Visible = true;
 			shot.Dead = false;
 
-			++m_CurrentShotCount;
+			++m_CurrentUsedAmmoCount;
 
 			result = true;
 
@@ -367,7 +367,7 @@ void CNeonInvader::SpawnItem()
 		{
 			int item_id{ rand() % KItemTypeCount };
 
-			item.PtrEntity->SetRectangleUVRange(XMFLOAT2(60.0f * item_id, 0), XMFLOAT2(60, 60));
+			item.PtrEntity->SetRectangleUVRange(XMFLOAT2(100.0f * item_id, 0), XMFLOAT2(100, 100));
 			item.eItemType = (EItemType)item_id;
 
 			PositionEntityInsideScreen(item.PtrEntity);
@@ -451,7 +451,7 @@ void CNeonInvader::ClearDeadShots()
 			i.PtrEntity->Visible = false;
 			i.Dead = true;
 
-			--m_CurrentShotCount;
+			--m_CurrentUsedAmmoCount;
 		}
 	}
 }
@@ -492,9 +492,9 @@ void CNeonInvader::ProcessCollision()
 				switch (item.eItemType)
 				{
 				case EItemType::Ammo:
-					if (m_CurrentMaxShotCount < KMaxAmmoLimit)
+					if (m_CurrentMaxAmmoCount < KMaxAmmoLimit)
 					{
-						++m_CurrentMaxShotCount;
+						++m_CurrentMaxAmmoCount;
 					}
 					break;
 				case EItemType::Shield:
@@ -512,7 +512,7 @@ void CNeonInvader::ProcessCollision()
 				case EItemType::ReloadSpeed:
 					if (m_CurrentReloadInterval > KMinReloadInterval)
 					{
-						m_CurrentReloadInterval -= 30;
+						m_CurrentReloadInterval -= 40;
 						m_CurrentReloadInterval = max(m_CurrentReloadInterval, KMinReloadInterval);
 					}
 					break;
@@ -530,7 +530,7 @@ void CNeonInvader::ProcessCollision()
 		{
 			if (main_sprite_shot.PtrEntity->m_Collided)
 			{
-				--m_CurrentShotCount;
+				--m_CurrentUsedAmmoCount;
 				main_sprite_shot.Dead = true;
 				main_sprite_shot.PtrEntity->Visible = false;
 
@@ -582,12 +582,6 @@ void CNeonInvader::ProcessCollision()
 					m_FMODSystem->playSound(m_SoundExplosionBig, nullptr, false, &m_FMODChannelEffects);
 
 					SpawnEffect(enemy.PtrEntity->WorldPosition);
-				}
-				else
-				{
-					m_FMODSystem->playSound(m_SoundExplosionSmall, nullptr, false, &m_FMODChannelEffects);
-
-					SpawnEffect((enemy.PtrEntity->WorldPosition + m_PtrMainSprite->WorldPosition) / 2, 0.2f);
 				}
 			}
 		}
