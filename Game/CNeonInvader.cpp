@@ -35,8 +35,10 @@ void CNeonInvader::ReleaseAudio()
 
 void CNeonInvader::InitGame()
 {
+	m_Score = 0;
 	m_CurrentLife = KMaxLifeLimit;
 	m_GameOver = false;
+	m_GameCompleted = false;
 	m_GameStarted = true;
 
 	m_CurrentBulletSpeed = KDefaultBulletSpeed;
@@ -568,6 +570,9 @@ void CNeonInvader::ProcessCollision()
 		{
 			if (main_sprite_shot.PtrEntity->m_Collided)
 			{
+				m_Score += KScoreHitEnemy;
+				SpawnScore(KScoreHitEnemy, main_sprite_shot.PtrEntity->WorldPosition);
+
 				--m_CurrentUsedAmmoCount;
 				main_sprite_shot.Dead = true;
 				main_sprite_shot.PtrEntity->Visible = false;
@@ -609,9 +614,6 @@ void CNeonInvader::ProcessCollision()
 		{
 			if (enemy.PtrEntity->m_Collided)
 			{
-				m_Score += KScoreHitEnemy;
-				SpawnScore(KScoreHitEnemy, enemy.PtrEntity->WorldPosition);
-
 				--enemy.Life;
 
 				if (enemy.Life <= 0)
