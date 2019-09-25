@@ -45,7 +45,8 @@ void CNeonInvader::InitGame()
 }
 
 void CNeonInvader::SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
-	vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects, vector<SItem>& vItems) noexcept
+	vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots,
+	vector<SEffect>& vEffects, vector<SItem>& vItems, vector<SScore>& vScore) noexcept
 {
 	m_PtrStageSet = &StageSetData;
 	m_PtrMainSprite = EntityMainSprite;
@@ -54,6 +55,7 @@ void CNeonInvader::SetGameData(SStageSetData& StageSetData, CEntity* EntityMainS
 	m_PtrVEnemyShots = &vEnemyShots;
 	m_PtrVEffecs = &vEffects;
 	m_PtrVItems = &vItems;
+	m_PtrVScores = &vScore;
 
 	m_MaxStage = (int)StageSetData.vStages.size() - 1;
 }
@@ -183,6 +185,23 @@ void CNeonInvader::SpawnEffect(const XMFLOAT2& Position, float Scalar)
 			effect.PtrEntity->WorldPosition = Position;
 			effect.PtrEntity->Visible = true;
 			effect.PtrEntity->SetAnimation(0, true);
+
+			break;
+		}
+	}
+}
+
+void CNeonInvader::SpawnScore(int Score, const XMFLOAT2& Position)
+{
+	for (auto& score : *m_PtrVScores)
+	{
+		if (score.Dead)
+		{
+			score.Dead = false;
+
+			score.PtrEntity->WorldPosition = Position;
+			score.PtrEntity->Visible = true;
+			score.PtrEntity->SetAnimation(to_string(Score), true);
 
 			break;
 		}
@@ -400,6 +419,22 @@ void CNeonInvader::AnimateEffects()
 	}
 }
 
+void CNeonInvader::AnimateScores()
+{
+	for (auto& score : *m_PtrVScores)
+	{
+		if (score.PtrEntity->Visible && score.PtrEntity->m_vAnimations.size())
+		{
+			score.PtrEntity->Animate();
+			if (score.PtrEntity->m_vAnimations[score.PtrEntity->m_AnimationIndex]->IsOver)
+			{
+				score.PtrEntity->Visible = false;
+				score.Dead = true;
+			}
+		}
+	}
+}
+
 void CNeonInvader::ExecuteGame()
 {
 	if (m_GameOver) return;
@@ -486,7 +521,8 @@ void CNeonInvader::ProcessCollision()
 		{
 			if (item.PtrEntity->m_Collided)
 			{
-				m_Score += KItemScore;
+				m_Score += KScoreGetItem;
+				SpawnScore(KScoreGetItem, item.PtrEntity->WorldPosition);
 
 				item.Dead = true;
 				item.PtrEntity->Visible = false;
@@ -573,13 +609,15 @@ void CNeonInvader::ProcessCollision()
 		{
 			if (enemy.PtrEntity->m_Collided)
 			{
-				m_Score += KEnemyHitScore;
+				m_Score += KScoreHitEnemy;
+				SpawnScore(KScoreHitEnemy, enemy.PtrEntity->WorldPosition);
 
 				--enemy.Life;
 
 				if (enemy.Life <= 0)
 				{
-					m_Score += KEnemyKillScore;
+					m_Score += KScoreKillEnemy;
+					SpawnScore(KScoreKillEnemy, XMFLOAT2(enemy.PtrEntity->WorldPosition.x + 20.0f, enemy.PtrEntity->WorldPosition.y + 30.0f));
 
 					enemy.Dead = true;
 					enemy.PtrEntity->Visible = false;

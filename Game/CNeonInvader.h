@@ -26,6 +26,12 @@ struct SEffect
 	bool Dead{ true };
 };
 
+struct SScore
+{
+	CEntity* PtrEntity{};
+	bool Dead{ true };
+};
+
 struct SShot
 {
 	CEntity* PtrEntity{};
@@ -59,13 +65,15 @@ public:
 	void ReleaseAudio();
 	void InitGame();
 	void SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
-		vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots, vector<SEffect>& vEffects, vector<SItem>& vItems) noexcept;
+		vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots,
+		vector<SEffect>& vEffects, vector<SItem>& vItems, vector<SScore>& vScore) noexcept;
 	void SetStage(int StageID);
 
 	bool SpawnMainSpriteShot();
 	void SpawnItem();
 
 	void AnimateEffects();
+	void AnimateScores();
 	void ReorientEnemies();
 	void ReorientItems();
 
@@ -92,6 +100,8 @@ private:
 	void SpawnEnemyShot(SEnemy& Enemy, float ShotSpeed = 400.0f);
 
 	void SpawnEffect(const XMFLOAT2& Position, float Scalar = 1.0f);
+
+	void SpawnScore(int Score, const XMFLOAT2& Position);
 
 	void Reload();
 
@@ -125,9 +135,9 @@ private:
 	static constexpr int KMaxAmmoLimit{ 15 };
 
 private:
-	static constexpr int KEnemyHitScore{ 5 };
-	static constexpr int KEnemyKillScore{ 20 };
-	static constexpr int KItemScore{ 10 };
+	static constexpr int KScoreHitEnemy{ 5 };
+	static constexpr int KScoreGetItem{ 10 };
+	static constexpr int KScoreKillEnemy{ 20 };
 
 	XMFLOAT2			m_WindowSize{};
 
@@ -161,6 +171,7 @@ private:
 	vector<SShot>*		m_PtrVEnemyShots{};
 	vector<SEffect>*	m_PtrVEffecs{};
 	vector<SItem>*		m_PtrVItems{};
+	vector<SScore>*		m_PtrVScores{};
 
 	FMOD::System*		m_FMODSystem{};
 	FMOD::Sound*		m_SoundBG{};

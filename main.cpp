@@ -148,13 +148,76 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 	}
 
+	vector<SScore> v_scores{};
+	for (size_t i = 0; i < neon_invader.KMaxEffectLimit; ++i)
+	{
+		v_scores.emplace_back();
+
+		v_scores.back().Dead = true;
+
+		CEntity*& entity{ v_scores.back().PtrEntity };
+		{
+			entity = entity_pool.CreateEntity();
+
+			XMFLOAT2 size{ XMFLOAT2(100, 50) };
+			entity->SetTexture(texture_ui);
+			entity->CreateRectangle(size);
+			entity->ShouldCollide = false;
+			entity->Visible = false;
+			
+			{
+				SAnimation* animation{ entity->AddAnimation("5") };
+				animation->ShouldRepeat = false;
+				animation->vFrames.emplace_back(XMFLOAT2(150, 0), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 1), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 2), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 3), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 4), size);
+			}
+			{
+				SAnimation* animation{ entity->AddAnimation("10") };
+				animation->ShouldRepeat = false;
+				animation->vFrames.emplace_back(XMFLOAT2(150, 50), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 51), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 52), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 53), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 54), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 55), size);
+			}
+			{
+				SAnimation* animation{ entity->AddAnimation("15") };
+				animation->ShouldRepeat = false;
+				animation->vFrames.emplace_back(XMFLOAT2(150, 100), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 101), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 102), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 103), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 104), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 105), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 106), size);
+			}
+			{
+				SAnimation* animation{ entity->AddAnimation("20") };
+				animation->ShouldRepeat = false;
+				animation->vFrames.emplace_back(XMFLOAT2(150, 150), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 151), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 152), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 153), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 154), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 155), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 156), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 157), size);
+			}
+		}
+	}
+
 	entity_pool.SetMainSpriteEntity(entity_main_ship);
 
 	CStageSetLoader stage_set_loader{};
 	stage_set_loader.LoadStageSetFromFile(KAssetDir + "stage_set.txt");
 
 	neon_invader.SetGameData(
-		stage_set_loader.GetStageSetData(), entity_main_ship, v_enemy_ships, v_main_ship_shots, v_enemy_shots, v_effects, v_items);
+		stage_set_loader.GetStageSetData(), entity_main_ship, v_enemy_ships, v_main_ship_shots, v_enemy_shots, 
+		v_effects, v_items, v_scores);
 
 	CObject2D obj_bg{ &directx };
 	{
@@ -315,6 +378,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			if (time_now_microsec >= timer_animation + 1'500)
 			{
 				neon_invader.AnimateEffects();
+				neon_invader.AnimateScores();
 
 				timer_animation = time_now_microsec;
 			}
@@ -350,10 +414,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				ascii_renderer.RenderText("Score: " + to_string(neon_invader.GetScore()),
 					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 010.0f));
+
 				ascii_renderer.RenderText("Stage: " + to_string(neon_invader.GetStage() + 1) + "/" + to_string(neon_invader.GetMaxStage() + 1),
-					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 040.0f));
+					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 050.0f));
 				ascii_renderer.RenderText("Enemy: " + to_string(neon_invader.GetEnemyCount()) + "/" + to_string(neon_invader.GetMaxEnemyCount()),
-					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 070.0f));
+					XMFLOAT2(-KWindowSize.x / 2 + 10.0f, KWindowSize.y / 2 - 080.0f));
+
 				ascii_renderer.RenderText(" : " + to_string(neon_invader.GetShotCount()) + "/" + to_string(neon_invader.GetMaxShotCount()),
 					XMFLOAT2(0.0f, -KWindowSize.y / 2 + 50.0f));
 
