@@ -1,6 +1,168 @@
 #include "CNeonInvader.h"
 
-void CNeonInvader::InitAudio(const string& AssetDir)
+void CNeonInvader::CreateGameObjects(CTexture* SpriteSheet, CTexture* Effect, CTexture* ItemSet, CTexture* UISheet)
+{
+	for (size_t i = 0; i < KMaxMainSpriteShotLimit; ++i)
+	{
+		m_vMainShipShots.emplace_back();
+		m_vMainShipShots.back().PtrEntity = CreateEntity();
+		m_vMainShipShots.back().PtrEntity->SetTexture(SpriteSheet);
+		m_vMainShipShots.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 40));
+		m_vMainShipShots.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(110, 40));
+		m_vMainShipShots.back().PtrEntity->Sampler = ESampler::Linear;
+		m_vMainShipShots.back().PtrEntity->Visible = false;
+		m_vMainShipShots.back().PtrEntity->SetCollisionBox(XMFLOAT2(1, 10));
+	}
+
+	for (size_t i = 0; i < KMaxEnemyShotLimit; ++i)
+	{
+		m_vEnemyShots.emplace_back();
+		m_vEnemyShots.back().PtrEntity = CreateEntity();
+		m_vEnemyShots.back().PtrEntity->SetTexture(SpriteSheet);
+		m_vEnemyShots.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 40));
+		m_vEnemyShots.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(110, 0), XMFLOAT2(110, 40));
+		m_vEnemyShots.back().PtrEntity->Sampler = ESampler::Linear;
+		m_vEnemyShots.back().PtrEntity->Visible = false;
+		m_vEnemyShots.back().PtrEntity->SetCollisionBox(XMFLOAT2(1, 10));
+	}
+
+	for (size_t i = 0; i < KMaxEnemyLimit; ++i)
+	{
+		m_vEnemies.emplace_back();
+		m_vEnemies.back().PtrEntity = CreateEntity();
+		m_vEnemies.back().PtrEntity->SetTexture(SpriteSheet);
+		m_vEnemies.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 80));
+		m_vEnemies.back().PtrEntity->Sampler = ESampler::Linear;
+		m_vEnemies.back().PtrEntity->Visible = false;
+	}
+
+	for (size_t i = 0; i < KMaxItemLimit; ++i)
+	{
+		m_vItems.emplace_back();
+
+		m_vItems.back().Dead = true;
+		CEntity*& entity{ m_vItems.back().PtrEntity };
+		{
+			entity = CreateEntity();
+
+			entity->SetTexture(ItemSet);
+			entity->CreateRectangle(XMFLOAT2(100, 100));
+			entity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(100, 100));
+			entity->SetCollisionBox(XMFLOAT2(26, 26));
+			entity->Sampler = ESampler::Linear;
+			entity->Visible = false;
+		}
+	}
+
+	m_PtrMainSprite = CreateEntity();
+	{
+		m_PtrMainSprite->SetTexture(SpriteSheet);
+		m_PtrMainSprite->CreateRectangle(XMFLOAT2(110, 80));
+		m_PtrMainSprite->SetRectangleUVRange(XMFLOAT2(0, 40), XMFLOAT2(110, 80));
+		m_PtrMainSprite->Sampler = ESampler::Linear;
+		m_PtrMainSprite->Visible = false;
+		m_PtrMainSprite->SetCollisionBox(XMFLOAT2(27, 20));
+	}
+
+	for (size_t i = 0; i < KMaxEffectLimit; ++i)
+	{
+		m_vEffects.emplace_back();
+
+		m_vEffects.back().Dead = true;
+
+		CEntity*& entity{ m_vEffects.back().PtrEntity };
+		{
+			entity = CreateEntity();
+
+			XMFLOAT2 rect{ XMFLOAT2(196, 190) };
+			entity->SetTexture(Effect);
+			entity->CreateRectangle(rect);
+			entity->ShouldCollide = false;
+			entity->Visible = false;
+
+			SAnimation* animation{ entity->AddAnimation("explode") };
+			animation->ShouldRepeat = false;
+			animation->vFrames.emplace_back(XMFLOAT2(0, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(196, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(392, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(588, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(784, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(980, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1176, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1372, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1568, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1764, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(1960, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(2156, 0), rect);
+			animation->vFrames.emplace_back(XMFLOAT2(2352, 0), rect);
+
+			entity->SetAnimation("explode");
+		}
+	}
+	
+	for (size_t i = 0; i < KMaxEffectLimit; ++i)
+	{
+		m_vScores.emplace_back();
+
+		m_vScores.back().Dead = true;
+
+		CEntity*& entity{ m_vScores.back().PtrEntity };
+		{
+			entity = CreateEntity();
+
+			XMFLOAT2 size{ XMFLOAT2(100, 50) };
+			entity->SetTexture(UISheet);
+			entity->CreateRectangle(size);
+			entity->ShouldCollide = false;
+			entity->Visible = false;
+
+			{
+				SAnimation* animation{ entity->AddAnimation("5") };
+				animation->ShouldRepeat = false;
+				animation->vFrames.emplace_back(XMFLOAT2(150, 0), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 1), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 2), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 3), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 4), size);
+			}
+			{
+				SAnimation* animation{ entity->AddAnimation("10") };
+				animation->ShouldRepeat = false;
+				animation->vFrames.emplace_back(XMFLOAT2(150, 50), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 51), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 52), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 53), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 54), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 55), size);
+			}
+			{
+				SAnimation* animation{ entity->AddAnimation("15") };
+				animation->ShouldRepeat = false;
+				animation->vFrames.emplace_back(XMFLOAT2(150, 100), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 101), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 102), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 103), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 104), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 105), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 106), size);
+			}
+			{
+				SAnimation* animation{ entity->AddAnimation("20") };
+				animation->ShouldRepeat = false;
+				animation->vFrames.emplace_back(XMFLOAT2(150, 150), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 151), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 152), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 153), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 154), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 155), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 156), size);
+				animation->vFrames.emplace_back(XMFLOAT2(150, 157), size);
+			}
+		}
+	}
+}
+
+void CNeonInvader::CreateAudioObjects(const string& AssetDir)
 {
 	assert(FMOD::System_Create(&m_FMODSystem) == FMOD_OK);
 
@@ -46,20 +208,89 @@ void CNeonInvader::InitGame()
 	m_CurrentReloadInterval = KDefaultReloadInterval;
 }
 
-void CNeonInvader::SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
-	vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots,
-	vector<SEffect>& vEffects, vector<SItem>& vItems, vector<SScore>& vScore) noexcept
+void CNeonInvader::SetGameData(SStageSetData& StageSetData) noexcept
 {
 	m_PtrStageSet = &StageSetData;
-	m_PtrMainSprite = EntityMainSprite;
-	m_PtrVEnemies = &vEnemies;
-	m_PtrVMainSpriteShots = &vMainSpriteShots;
-	m_PtrVEnemyShots = &vEnemyShots;
-	m_PtrVEffecs = &vEffects;
-	m_PtrVItems = &vItems;
-	m_PtrVScores = &vScore;
 
 	m_MaxStage = (int)StageSetData.vStages.size() - 1;
+}
+
+void CNeonInvader::DetectCoarseCollision()
+{
+	CEntityPool::DetectCoarseCollision();
+
+	m_PtrMainSprite->m_Collided = false;
+
+	// Main sprite vs. Enemy sprites
+	for (auto& enemy : m_vEnemies)
+	{
+		enemy.PtrEntity->m_Collided = false;
+
+		if (m_PtrMainSprite->ShouldCollide && enemy.PtrEntity->ShouldCollide && m_PtrMainSprite->Visible && enemy.PtrEntity->Visible)
+		{
+			XMFLOAT2 diff{ m_PtrMainSprite->WorldPosition - enemy.PtrEntity->WorldPosition };
+			float distance{ XMFLOAT2GetLength(diff) };
+
+			if (distance <= m_PtrMainSprite->m_CoarseCollisionRadius + enemy.PtrEntity->m_CoarseCollisionRadius)
+			{
+				m_vFineCollisionPairs.emplace_back(m_PtrMainSprite, enemy.PtrEntity);
+			}
+		}
+	}
+
+	// Main sprite vs. Enemy shots
+	for (auto& enemy_shot : m_vEnemyShots)
+	{
+		enemy_shot.PtrEntity->m_Collided = false;
+
+		if (enemy_shot.PtrEntity->ShouldCollide && m_PtrMainSprite->ShouldCollide && enemy_shot.PtrEntity->Visible && m_PtrMainSprite->Visible)
+		{
+			XMFLOAT2 diff{ enemy_shot.PtrEntity->WorldPosition - m_PtrMainSprite->WorldPosition };
+			float distance{ XMFLOAT2GetLength(diff) };
+
+			if (distance <= enemy_shot.PtrEntity->m_CoarseCollisionRadius + m_PtrMainSprite->m_CoarseCollisionRadius)
+			{
+				m_vFineCollisionPairs.emplace_back(enemy_shot.PtrEntity, m_PtrMainSprite);
+			}
+		}
+	}
+
+	// Main sprite vs. Items
+	for (auto& item : m_vItems)
+	{
+		item.PtrEntity->m_Collided = false;
+
+		if (item.PtrEntity->ShouldCollide && m_PtrMainSprite->ShouldCollide && item.PtrEntity->Visible && m_PtrMainSprite->Visible)
+		{
+			XMFLOAT2 diff{ item.PtrEntity->WorldPosition - m_PtrMainSprite->WorldPosition };
+			float distance{ XMFLOAT2GetLength(diff) };
+
+			if (distance <= item.PtrEntity->m_CoarseCollisionRadius + m_PtrMainSprite->m_CoarseCollisionRadius)
+			{
+				m_vFineCollisionPairs.emplace_back(item.PtrEntity, m_PtrMainSprite);
+			}
+		}
+	}
+
+	// Main sprite shots vs. Enemy sprites
+	for (auto& main_sprite_shot : m_vMainShipShots)
+	{
+		main_sprite_shot.PtrEntity->m_Collided = false;
+
+		for (auto& enemy : m_vEnemies)
+		{
+			if (main_sprite_shot.PtrEntity->ShouldCollide && enemy.PtrEntity->ShouldCollide && main_sprite_shot.PtrEntity->Visible && enemy.PtrEntity->Visible)
+			{
+				XMFLOAT2 diff{ main_sprite_shot.PtrEntity->WorldPosition - enemy.PtrEntity->WorldPosition };
+				float distance{ XMFLOAT2GetLength(diff) };
+
+				if (distance <= main_sprite_shot.PtrEntity->m_CoarseCollisionRadius + enemy.PtrEntity->m_CoarseCollisionRadius)
+				{
+					m_vFineCollisionPairs.emplace_back(main_sprite_shot.PtrEntity, enemy.PtrEntity);
+				}
+			}
+		}
+	}
 }
 
 int CNeonInvader::PositionEntityInsideScreen(CEntity* PtrEntity, int FromDirection)
@@ -108,7 +339,7 @@ void CNeonInvader::SpawnEnemy(EEnemyType Type, int Life, int ShotInterval, float
 {
 	for (size_t i = 0; i < m_CurrentMaxEnemyCount; ++i)
 	{
-		SEnemy& enemy{ (*m_PtrVEnemies)[i] };
+		SEnemy& enemy{ (m_vEnemies)[i] };
 
 		if (enemy.Dead)
 		{
@@ -150,7 +381,7 @@ void CNeonInvader::SpawnEnemyShot(SEnemy& Enemy, float ShotSpeed)
 	if (!m_GameStarted) return;
 	if (m_GameOver) return;
 
-	for (auto& shot : *m_PtrVEnemyShots)
+	for (auto& shot : m_vEnemyShots)
 	{
 		if (shot.Dead)
 		{
@@ -176,7 +407,7 @@ void CNeonInvader::SpawnEnemyShot(SEnemy& Enemy, float ShotSpeed)
 
 void CNeonInvader::SpawnEffect(const XMFLOAT2& Position, float Scalar)
 {
-	for (auto& effect : *m_PtrVEffecs)
+	for (auto& effect : m_vEffects)
 	{
 		if (effect.Dead)
 		{
@@ -197,7 +428,7 @@ void CNeonInvader::SpawnEffect(const XMFLOAT2& Position, float Scalar)
 
 void CNeonInvader::SpawnScore(int Score, const XMFLOAT2& Position)
 {
-	for (auto& score : *m_PtrVScores)
+	for (auto& score : m_vScores)
 	{
 		if (score.Dead)
 		{
@@ -214,7 +445,7 @@ void CNeonInvader::SpawnScore(int Score, const XMFLOAT2& Position)
 
 void CNeonInvader::RepositionEnemiesOutOfScreen()
 {
-	for (auto& enemy : *m_PtrVEnemies)
+	for (auto& enemy : m_vEnemies)
 	{
 		if (enemy.PtrEntity->WorldPosition.x < -m_WindowSize.x / 2 - KScreenSpawnBoundary ||
 			enemy.PtrEntity->WorldPosition.x > +m_WindowSize.x / 2 + KScreenSpawnBoundary ||
@@ -259,7 +490,7 @@ void CNeonInvader::OrientEntityTowardsMainEntity(CEntity* PtrEntity, float Speed
 
 void CNeonInvader::ReorientEnemies()
 {
-	for (auto& enemy : *m_PtrVEnemies)
+	for (auto& enemy : m_vEnemies)
 	{
 		if (!enemy.Dead)
 		{
@@ -270,7 +501,7 @@ void CNeonInvader::ReorientEnemies()
 
 void CNeonInvader::ReorientItems()
 {
-	for (auto& item : *m_PtrVItems)
+	for (auto& item : m_vItems)
 	{
 		if (!item.Dead)
 		{
@@ -302,7 +533,7 @@ void CNeonInvader::SetStage(int StageID)
 
 	m_CurrentStage = StageID;
 
-	for (auto& enemy : *m_PtrVEnemies)
+	for (auto& enemy : m_vEnemies)
 	{
 		enemy.Dead = true;
 		enemy.PtrEntity->Visible = false;
@@ -346,7 +577,7 @@ bool CNeonInvader::SpawnMainSpriteShot()
 	bool result{ false };
 	for (size_t i = 0; i < m_CurrentMaxAmmoCount; ++i)
 	{
-		SShot& shot{ (*m_PtrVMainSpriteShots)[i] };
+		SShot& shot{ m_vMainShipShots[i] };
 		if (shot.Dead)
 		{
 			XMMATRIX mat_rot{ XMMatrixRotationZ(m_PtrMainSprite->RotationAngle) };
@@ -384,7 +615,7 @@ void CNeonInvader::SpawnItem()
 
 	if (m_CurrentStageItemSpawningCount >= m_CurrentStageMaxItemSpawningCount) return;
 
-	for (auto& item : *m_PtrVItems)
+	for (auto& item : m_vItems)
 	{
 		if (item.Dead)
 		{
@@ -424,7 +655,7 @@ void CNeonInvader::SetCameraToOrigin()
 
 void CNeonInvader::AnimateEffects()
 {
-	for (auto& effect : *m_PtrVEffecs)
+	for (auto& effect : m_vEffects)
 	{
 		if (effect.PtrEntity->Visible && effect.PtrEntity->m_vAnimations.size())
 		{
@@ -440,7 +671,7 @@ void CNeonInvader::AnimateEffects()
 
 void CNeonInvader::AnimateScores()
 {
-	for (auto& score : *m_PtrVScores)
+	for (auto& score : m_vScores)
 	{
 		if (score.PtrEntity->Visible && score.PtrEntity->m_vAnimations.size())
 		{
@@ -489,7 +720,7 @@ void CNeonInvader::ExecuteGame()
 
 		RepositionEnemiesOutOfScreen();
 
-		for (auto& enemy : *m_PtrVEnemies)
+		for (auto& enemy : m_vEnemies)
 		{
 			if (!enemy.Dead)
 			{
@@ -513,7 +744,7 @@ void CNeonInvader::ExecuteGame()
 
 void CNeonInvader::ClearDeadShots()
 {
-	for (auto& i : *m_PtrVMainSpriteShots)
+	for (auto& i : m_vMainShipShots)
 	{
 		if (i.Dead) continue;
 
@@ -532,7 +763,7 @@ void CNeonInvader::ClearDeadShots()
 
 void CNeonInvader::ClearDeadItems()
 {
-	for (auto& i : *m_PtrVItems)
+	for (auto& i : m_vItems)
 	{
 		if (i.Dead) continue;
 
@@ -556,7 +787,7 @@ void CNeonInvader::ProcessCollision()
 	}
 	else
 	{
-		for (auto& item : *m_PtrVItems)
+		for (auto& item : m_vItems)
 		{
 			if (item.PtrEntity->m_Collided)
 			{
@@ -603,7 +834,7 @@ void CNeonInvader::ProcessCollision()
 			}
 		}
 
-		for (auto& main_sprite_shot : *m_PtrVMainSpriteShots)
+		for (auto& main_sprite_shot : m_vMainShipShots)
 		{
 			if (main_sprite_shot.PtrEntity->m_Collided)
 			{
@@ -619,7 +850,7 @@ void CNeonInvader::ProcessCollision()
 			}
 		}
 
-		for (auto& enemy_shot : *m_PtrVEnemyShots)
+		for (auto& enemy_shot : m_vEnemyShots)
 		{
 			if (enemy_shot.PtrEntity->m_Collided)
 			{
@@ -647,7 +878,7 @@ void CNeonInvader::ProcessCollision()
 			m_CollisionIntervalCounter = 0;
 		}
 
-		for (auto& enemy : *m_PtrVEnemies)
+		for (auto& enemy : m_vEnemies)
 		{
 			if (enemy.PtrEntity->m_Collided)
 			{

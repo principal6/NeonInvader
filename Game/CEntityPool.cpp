@@ -2,48 +2,13 @@
 
 CEntity* CEntityPool::CreateEntity()
 {
-	m_vEntities.emplace_back(make_unique<CEntity>(m_DirectX));
+	m_vEntities.emplace_back(make_unique<CEntity>(m_PtrDirectX));
 	return m_vEntities.back().get();
 }
 
 CEntity* CEntityPool::GetEntity(size_t Index)
 {
 	return m_vEntities[Index].get();
-}
-
-void CEntityPool::SetMainSpriteEntity(CEntity* PtrEntity)
-{
-	assert(PtrEntity);
-
-	m_EntityMainSprite = PtrEntity;
-}
-
-void CEntityPool::AddMainSpriteShotEntity(CEntity* PtrEntityShot)
-{
-	assert(PtrEntityShot);
-
-	m_vEntityMainSpriteShots.emplace_back(PtrEntityShot);
-}
-
-void CEntityPool::AddEnemyShotEntity(CEntity* PtrEnemyShot)
-{
-	assert(PtrEnemyShot);
-
-	m_vEntityEnemyShots.emplace_back(PtrEnemyShot);
-}
-
-void CEntityPool::AddEnemyEntity(CEntity* PtrEntityEnemy)
-{
-	assert(PtrEntityEnemy);
-
-	m_vEntityEnemies.emplace_back(PtrEntityEnemy);
-}
-
-void CEntityPool::AddItemEntity(CEntity* PtrEntityItem)
-{
-	assert(PtrEntityItem);
-
-	m_vEntityItems.emplace_back(PtrEntityItem);
 }
 
 void CEntityPool::ApplyPhysics(float DeltaTime)
@@ -74,84 +39,11 @@ void CEntityPool::DrawEntitiesInAddedOrder()
 void CEntityPool::DetectCoarseCollision()
 {
 	m_vFineCollisionPairs.clear();
-
-	m_EntityMainSprite->m_Collided = false;
-
-	// Main sprite vs. Enemy sprites
-	for (auto& enemy : m_vEntityEnemies)
-	{
-		enemy->m_Collided = false;
-
-		if (m_EntityMainSprite->ShouldCollide && enemy->ShouldCollide && m_EntityMainSprite->Visible && enemy->Visible)
-		{
-			XMFLOAT2 diff{ m_EntityMainSprite->WorldPosition - enemy->WorldPosition };
-			float distance{ XMFLOAT2GetLength(diff) };
-
-			if (distance <= m_EntityMainSprite->m_CoarseCollisionRadius + enemy->m_CoarseCollisionRadius)
-			{
-				m_vFineCollisionPairs.emplace_back(m_EntityMainSprite, enemy);
-			}
-		}
-	}
-
-	// Main sprite vs. Enemy shots
-	for (auto& enemy_shot : m_vEntityEnemyShots)
-	{
-		enemy_shot->m_Collided = false;
-
-		if (enemy_shot->ShouldCollide && m_EntityMainSprite->ShouldCollide && enemy_shot->Visible && m_EntityMainSprite->Visible)
-		{
-			XMFLOAT2 diff{ enemy_shot->WorldPosition - m_EntityMainSprite->WorldPosition };
-			float distance{ XMFLOAT2GetLength(diff) };
-
-			if (distance <= enemy_shot->m_CoarseCollisionRadius + m_EntityMainSprite->m_CoarseCollisionRadius)
-			{
-				m_vFineCollisionPairs.emplace_back(enemy_shot, m_EntityMainSprite);
-			}
-		}
-	}
-
-	// Main sprite vs. Items
-	for (auto& item : m_vEntityItems)
-	{
-		item->m_Collided = false;
-
-		if (item->ShouldCollide && m_EntityMainSprite->ShouldCollide && item->Visible && m_EntityMainSprite->Visible)
-		{
-			XMFLOAT2 diff{ item->WorldPosition - m_EntityMainSprite->WorldPosition };
-			float distance{ XMFLOAT2GetLength(diff) };
-
-			if (distance <= item->m_CoarseCollisionRadius + m_EntityMainSprite->m_CoarseCollisionRadius)
-			{
-				m_vFineCollisionPairs.emplace_back(item, m_EntityMainSprite);
-			}
-		}
-	}
-
-	// Main sprite shots vs. Enemy sprites
-	for (auto& main_sprite_shot : m_vEntityMainSpriteShots)
-	{
-		main_sprite_shot->m_Collided = false;
-
-		for (auto& enemy : m_vEntityEnemies)
-		{
-			if (main_sprite_shot->ShouldCollide && enemy->ShouldCollide && main_sprite_shot->Visible && enemy->Visible)
-			{
-				XMFLOAT2 diff{ main_sprite_shot->WorldPosition - enemy->WorldPosition };
-				float distance{ XMFLOAT2GetLength(diff) };
-
-				if (distance <= main_sprite_shot->m_CoarseCollisionRadius + enemy->m_CoarseCollisionRadius)
-				{
-					m_vFineCollisionPairs.emplace_back(main_sprite_shot, enemy);
-				}
-			}
-		}
-	}
 }
 
 void CEntityPool::DetectFineCollision()
 {
-	FineCollision = false;
+	FineCollisionDetected = false;
 
 	for (auto& pair : m_vFineCollisionPairs)
 	{
@@ -161,7 +53,7 @@ void CEntityPool::DetectFineCollision()
 		float dist_ab{ XMFLOAT2GetLength(a->WorldPosition - b->WorldPosition) };
 		if (dist_ab <= a->m_FineCollisionRadius + b->m_FineCollisionRadius)
 		{
-			FineCollision = true;
+			FineCollisionDetected = true;
 			a->m_Collided = b->m_Collided = true;
 
 			continue;
@@ -177,7 +69,7 @@ void CEntityPool::DetectFineCollision()
 
 			if (IsPointAInsideBoxB(world_a, b))
 			{
-				FineCollision = true;
+				FineCollisionDetected = true;
 				a->m_Collided = b->m_Collided = true;
 
 				continue;
@@ -194,7 +86,7 @@ void CEntityPool::DetectFineCollision()
 
 			if (IsPointAInsideBoxB(world_b, a))
 			{
-				FineCollision = true;
+				FineCollisionDetected = true;
 				a->m_Collided = b->m_Collided = true;
 
 				continue;

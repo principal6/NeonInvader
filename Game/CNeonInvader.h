@@ -55,18 +55,17 @@ struct SItem
 	EItemType eItemType{};
 };
 
-class CNeonInvader final
+class CNeonInvader final : public CEntityPool
 {
 public:
-	CNeonInvader(const XMFLOAT2& WindowSize, CDirectX* PtrDirectX) : m_WindowSize{ WindowSize }, m_PtrDirectX{ PtrDirectX } {}
+	CNeonInvader(const XMFLOAT2& WindowSize, CDirectX* PtrDirectX) : CEntityPool(PtrDirectX) { m_WindowSize = WindowSize; }
 	~CNeonInvader() { ReleaseAudio(); }
 
-	void InitAudio(const string& AssetDir);
+	void CreateGameObjects(CTexture* SpriteSheet, CTexture* Effect, CTexture* ItemSet, CTexture* UISheet);
+	void CreateAudioObjects(const string& AssetDir);
 	void ReleaseAudio();
 	void InitGame();
-	void SetGameData(SStageSetData& StageSetData, CEntity* EntityMainSprite, 
-		vector<SEnemy>& vEnemies, vector<SShot>& vMainSpriteShots, vector<SShot>& vEnemyShots,
-		vector<SEffect>& vEffects, vector<SItem>& vItems, vector<SScore>& vScore) noexcept;
+	void SetGameData(SStageSetData& StageSetData) noexcept;
 	void SetStage(int StageID);
 
 	bool SpawnMainSpriteShot();
@@ -81,6 +80,9 @@ public:
 	void ExecuteGame();
 
 public:
+	CEntity* GetMainSpriteEntity() { return m_PtrMainSprite; }
+
+public:
 	int GetStage() const noexcept { return m_CurrentStage; }
 	int GetMaxStage() const noexcept { return m_MaxStage; }
 	int GetLife() const noexcept { return m_CurrentLife; }
@@ -92,6 +94,9 @@ public:
 	bool IsGameRunning() const noexcept { return m_GameStarted; }
 	bool IsGameOver() const noexcept { return m_GameOver; }
 	bool IsCompleted() const noexcept { return m_GameCompleted; }
+
+private:
+	void DetectCoarseCollision() override;
 
 private:
 	int PositionEntityInsideScreen(CEntity* PtrEntity, int FromDirection = -1);
@@ -129,8 +134,8 @@ public:
 private:
 	static constexpr float KScreenSpawnBoundary{ 30.0f };
 	static constexpr int KCollisionInterval{ 200 };
-	static constexpr float KCameraShakeXIntensity{ 20.0f };
-	static constexpr float KCameraShakeYIntensity{ 10.0f };
+	static constexpr float KCameraShakeXIntensity{ 15.0f };
+	static constexpr float KCameraShakeYIntensity{ 5.0f };
 
 private:
 	static constexpr int KItemTypeCount{ 4 };
@@ -150,7 +155,6 @@ private:
 	static constexpr int KScoreGetItem{ 10 };
 	static constexpr int KScoreKillEnemy{ 20 };
 
-	CDirectX*			m_PtrDirectX{};
 	XMFLOAT2			m_WindowSize{};
 
 	bool				m_GameStarted{ false };
@@ -177,13 +181,14 @@ private:
 	int					m_Score{};
 
 	SStageSetData*		m_PtrStageSet{};
+
 	CEntity*			m_PtrMainSprite{};
-	vector<SEnemy>*		m_PtrVEnemies{};
-	vector<SShot>*		m_PtrVMainSpriteShots{};
-	vector<SShot>*		m_PtrVEnemyShots{};
-	vector<SEffect>*	m_PtrVEffecs{};
-	vector<SItem>*		m_PtrVItems{};
-	vector<SScore>*		m_PtrVScores{};
+	vector<SShot>		m_vMainShipShots{};
+	vector<SShot>		m_vEnemyShots{};
+	vector<SEnemy>		m_vEnemies{};
+	vector<SItem>		m_vItems{};
+	vector<SEffect>		m_vEffects{};
+	vector<SScore>		m_vScores{};
 
 	FMOD::System*		m_FMODSystem{};
 	FMOD::Sound*		m_SoundBG{};

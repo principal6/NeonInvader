@@ -35,189 +35,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CTexture* texture_ui{ texture_pool.AddSharedTexture(KAssetDir + "ui.png") };
 
 	CNeonInvader neon_invader{ KWindowSize, &directx };
-
-	CEntityPool entity_pool{ &directx };
-	vector<SShot> v_main_ship_shots{};
-	for (size_t i = 0; i < neon_invader.KMaxMainSpriteShotLimit; ++i)
-	{
-		v_main_ship_shots.emplace_back();
-		v_main_ship_shots.back().PtrEntity = entity_pool.CreateEntity();
-		v_main_ship_shots.back().PtrEntity->SetTexture(texture_sprite);
-		v_main_ship_shots.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 40));
-		v_main_ship_shots.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(110, 40));
-		v_main_ship_shots.back().PtrEntity->Sampler = ESampler::Linear;
-		v_main_ship_shots.back().PtrEntity->Visible = false;
-		v_main_ship_shots.back().PtrEntity->SetCollisionBox(XMFLOAT2(1, 10));
-
-		entity_pool.AddMainSpriteShotEntity(v_main_ship_shots.back().PtrEntity);
-	}
-
-	vector<SShot> v_enemy_shots{};
-	for (size_t i = 0; i < neon_invader.KMaxEnemyShotLimit; ++i)
-	{
-		v_enemy_shots.emplace_back();
-		v_enemy_shots.back().PtrEntity = entity_pool.CreateEntity();
-		v_enemy_shots.back().PtrEntity->SetTexture(texture_sprite);
-		v_enemy_shots.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 40));
-		v_enemy_shots.back().PtrEntity->SetRectangleUVRange(XMFLOAT2(110, 0), XMFLOAT2(110, 40));
-		v_enemy_shots.back().PtrEntity->Sampler = ESampler::Linear;
-		v_enemy_shots.back().PtrEntity->Visible = false;
-		v_enemy_shots.back().PtrEntity->SetCollisionBox(XMFLOAT2(1, 10));
-
-		entity_pool.AddEnemyShotEntity(v_enemy_shots.back().PtrEntity);
-	}
-
-	vector<SEnemy> v_enemy_ships{};
-	for (size_t i = 0; i < neon_invader.KMaxEnemyLimit; ++i)
-	{
-		v_enemy_ships.emplace_back();
-		v_enemy_ships.back().PtrEntity = entity_pool.CreateEntity();
-		v_enemy_ships.back().PtrEntity->SetTexture(texture_sprite);
-		v_enemy_ships.back().PtrEntity->CreateRectangle(XMFLOAT2(110, 80));
-		v_enemy_ships.back().PtrEntity->Sampler = ESampler::Linear;
-		v_enemy_ships.back().PtrEntity->Visible = false;
-
-		entity_pool.AddEnemyEntity(v_enemy_ships.back().PtrEntity);
-	}
-
-	vector<SItem> v_items{};
-	for (size_t i = 0; i < neon_invader.KMaxItemLimit; ++i)
-	{
-		v_items.emplace_back();
-
-		v_items.back().Dead = true;
-		CEntity*& entity{ v_items.back().PtrEntity };
-		{
-			entity = entity_pool.CreateEntity();
-
-			entity->SetTexture(texture_itemset);
-			entity->CreateRectangle(XMFLOAT2(100, 100));
-			entity->SetRectangleUVRange(XMFLOAT2(0, 0), XMFLOAT2(100, 100));
-			entity->SetCollisionBox(XMFLOAT2(26, 26));
-			entity->Sampler = ESampler::Linear;
-			entity->Visible = false;
-		}
-
-		entity_pool.AddItemEntity(entity);
-	}
-
-	CEntity* entity_main_ship{ entity_pool.CreateEntity() };
-	{
-		entity_main_ship->SetTexture(texture_sprite);
-		entity_main_ship->CreateRectangle(XMFLOAT2(110, 80));
-		entity_main_ship->SetRectangleUVRange(XMFLOAT2(0, 40), XMFLOAT2(110, 80));
-		entity_main_ship->Sampler = ESampler::Linear;
-		entity_main_ship->Visible = false;
-		entity_main_ship->SetCollisionBox(XMFLOAT2(27, 20));
-	}
-
-	vector<SEffect> v_effects{};
-	for (size_t i = 0; i < neon_invader.KMaxEffectLimit; ++i)
-	{
-		v_effects.emplace_back();
-
-		v_effects.back().Dead = true;
-
-		CEntity*& entity{ v_effects.back().PtrEntity };
-		{
-			entity = entity_pool.CreateEntity();
-
-			XMFLOAT2 rect{ XMFLOAT2(196, 190) };
-			entity->SetTexture(texture_explosion);
-			entity->CreateRectangle(rect);
-			entity->ShouldCollide = false;
-			entity->Visible = false;
-
-			SAnimation* animation{ entity->AddAnimation("explode") };
-			animation->ShouldRepeat = false;
-			animation->vFrames.emplace_back(XMFLOAT2(0, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(196, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(392, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(588, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(784, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(980, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(1176, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(1372, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(1568, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(1764, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(1960, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(2156, 0), rect);
-			animation->vFrames.emplace_back(XMFLOAT2(2352, 0), rect);
-
-			entity->SetAnimation("explode");
-		}
-	}
-
-	vector<SScore> v_scores{};
-	for (size_t i = 0; i < neon_invader.KMaxEffectLimit; ++i)
-	{
-		v_scores.emplace_back();
-
-		v_scores.back().Dead = true;
-
-		CEntity*& entity{ v_scores.back().PtrEntity };
-		{
-			entity = entity_pool.CreateEntity();
-
-			XMFLOAT2 size{ XMFLOAT2(100, 50) };
-			entity->SetTexture(texture_ui);
-			entity->CreateRectangle(size);
-			entity->ShouldCollide = false;
-			entity->Visible = false;
-			
-			{
-				SAnimation* animation{ entity->AddAnimation("5") };
-				animation->ShouldRepeat = false;
-				animation->vFrames.emplace_back(XMFLOAT2(150, 0), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 1), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 2), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 3), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 4), size);
-			}
-			{
-				SAnimation* animation{ entity->AddAnimation("10") };
-				animation->ShouldRepeat = false;
-				animation->vFrames.emplace_back(XMFLOAT2(150, 50), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 51), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 52), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 53), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 54), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 55), size);
-			}
-			{
-				SAnimation* animation{ entity->AddAnimation("15") };
-				animation->ShouldRepeat = false;
-				animation->vFrames.emplace_back(XMFLOAT2(150, 100), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 101), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 102), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 103), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 104), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 105), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 106), size);
-			}
-			{
-				SAnimation* animation{ entity->AddAnimation("20") };
-				animation->ShouldRepeat = false;
-				animation->vFrames.emplace_back(XMFLOAT2(150, 150), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 151), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 152), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 153), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 154), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 155), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 156), size);
-				animation->vFrames.emplace_back(XMFLOAT2(150, 157), size);
-			}
-		}
-	}
-
-	entity_pool.SetMainSpriteEntity(entity_main_ship);
+	neon_invader.CreateGameObjects(texture_sprite, texture_explosion, texture_itemset, texture_ui);
+	neon_invader.CreateAudioObjects(KAssetDir);
 
 	CStageSetLoader stage_set_loader{};
 	stage_set_loader.LoadStageSetFromFile(KAssetDir + "stage_set.txt");
 
-	neon_invader.SetGameData(
-		stage_set_loader.GetStageSetData(), entity_main_ship, v_enemy_ships, v_main_ship_shots, v_enemy_shots, 
-		v_effects, v_items, v_scores);
+	neon_invader.SetGameData(stage_set_loader.GetStageSetData());
 
 	CObject2D obj_bg{ &directx };
 	{
@@ -304,8 +128,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	bool should_show_completed{ false };
 	bool should_draw_guildeline{ false };
 
-	neon_invader.InitAudio(KAssetDir);
-
 	while (true)
 	{
 		static MSG msg{};
@@ -332,6 +154,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		else
 		{
+			auto main_sprite{ neon_invader.GetMainSpriteEntity() };
+
 			vs->Use();
 			ps->Use();
 
@@ -350,19 +174,19 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			if (time_now_microsec >= timer_movement + 3'000)
 			{
-				if (turn_left) entity_main_ship->RotationAngle += 0.02f;
-				if (turn_right) entity_main_ship->RotationAngle -= 0.02f;
-				if (move_forward) entity_main_ship->MoveForward(0.7f);
-				if (move_backward) entity_main_ship->MoveBackward(0.4f);
-				if (move_left) entity_main_ship->MoveLeft(0.4f);
-				if (move_right) entity_main_ship->MoveRight(0.4f);
+				if (turn_left) main_sprite->RotationAngle += 0.02f;
+				if (turn_right) main_sprite->RotationAngle -= 0.02f;
+				if (move_forward) main_sprite->MoveForward(0.7f);
+				if (move_backward) main_sprite->MoveBackward(0.4f);
+				if (move_left) main_sprite->MoveLeft(0.4f);
+				if (move_right) main_sprite->MoveRight(0.4f);
 
-				if (entity_main_ship->RotationAngle >= XM_2PI) entity_main_ship->RotationAngle = 0.0f;
-				if (entity_main_ship->RotationAngle <= -XM_2PI) entity_main_ship->RotationAngle = 0.0f;
-				entity_main_ship->WorldPosition.x = max(entity_main_ship->WorldPosition.x, -KWindowSize.x / 2);
-				entity_main_ship->WorldPosition.x = min(entity_main_ship->WorldPosition.x, KWindowSize.x / 2);
-				entity_main_ship->WorldPosition.y = max(entity_main_ship->WorldPosition.y, -KWindowSize.y / 2);
-				entity_main_ship->WorldPosition.y = min(entity_main_ship->WorldPosition.y, KWindowSize.y / 2);
+				if (main_sprite->RotationAngle >= XM_2PI) main_sprite->RotationAngle = 0.0f;
+				if (main_sprite->RotationAngle <= -XM_2PI) main_sprite->RotationAngle = 0.0f;
+				main_sprite->WorldPosition.x = max(main_sprite->WorldPosition.x, -KWindowSize.x / 2);
+				main_sprite->WorldPosition.x = min(main_sprite->WorldPosition.x, KWindowSize.x / 2);
+				main_sprite->WorldPosition.y = max(main_sprite->WorldPosition.y, -KWindowSize.y / 2);
+				main_sprite->WorldPosition.y = min(main_sprite->WorldPosition.y, KWindowSize.y / 2);
 
 				timer_movement = time_now_microsec;
 			}
@@ -388,14 +212,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			if (neon_invader.IsGameRunning() && should_draw_guildeline)
 			{
-				obj_guideline.WorldPosition = entity_main_ship->WorldPosition;
-				obj_guideline.RotationAngle = entity_main_ship->RotationAngle;
+				obj_guideline.WorldPosition = main_sprite->WorldPosition;
+				obj_guideline.RotationAngle = main_sprite->RotationAngle;
 				obj_guideline.Draw();
 			}
 
-			entity_pool.ApplyPhysics(delta_time);
-			entity_pool.DrawEntitiesInAddedOrder();
-
+			neon_invader.ApplyPhysics(delta_time);
+			neon_invader.DrawEntitiesInAddedOrder();
+			
 			neon_invader.SetCameraToOrigin();
 
 			if (should_show_title)
@@ -403,7 +227,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				if (GetAsyncKeyState(VK_RETURN) < 0)
 				{
 					should_show_title = false;
-					entity_main_ship->Visible = true;
+					main_sprite->Visible = true;
 
 					neon_invader.InitGame();
 					neon_invader.SetStage(0);
@@ -446,7 +270,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				if (GetAsyncKeyState(VK_RETURN) < 0)
 				{
 					should_show_game_over = false;
-					entity_main_ship->Visible = true;
+					main_sprite->Visible = true;
 
 					neon_invader.InitGame();
 					neon_invader.SetStage(0);
@@ -500,7 +324,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				else
 				{
 					should_show_game_over = true;
-					entity_main_ship->Visible = false;
+					main_sprite->Visible = false;
 				}
 			}
 
