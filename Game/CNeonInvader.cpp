@@ -242,7 +242,7 @@ void CNeonInvader::OrientEntityTowardsMainEntity(CEntity* PtrEntity, float Speed
 
 	if (GraduallyOrient)
 	{
-		PtrEntity->RotationAngle += angle_diff  * (0.0001f * (SpeedFactor / 3) * RotationSpeedFactor);
+		PtrEntity->RotationAngle += angle_diff  * (0.0002f * (SpeedFactor / 3) * RotationSpeedFactor);
 	}
 	else
 	{
