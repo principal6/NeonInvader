@@ -188,6 +188,8 @@ void CNeonInvader::SpawnEffect(const XMFLOAT2& Position, float Scalar)
 			effect.PtrEntity->Visible = true;
 			effect.PtrEntity->SetAnimation(0, true);
 
+			ShakeCamera(KCameraShakeXIntensity * Scalar, KCameraShakeYIntensity * Scalar);
+
 			break;
 		}
 	}
@@ -405,6 +407,21 @@ void CNeonInvader::SpawnItem()
 	}
 }
 
+void CNeonInvader::AnimateScene()
+{
+	AnimateEffects();
+	AnimateScores();
+	AnimateCameraShaking();
+}
+
+void CNeonInvader::SetCameraToOrigin()
+{
+	SCBCameraShake no_shake{};
+
+	CConstantBuffer* cb_camera_shake{ m_PtrDirectX->GetCBCameraShakePtr() };
+	cb_camera_shake->Update(&no_shake);
+}
+
 void CNeonInvader::AnimateEffects()
 {
 	for (auto& effect : *m_PtrVEffecs)
@@ -435,6 +452,26 @@ void CNeonInvader::AnimateScores()
 			}
 		}
 	}
+}
+
+void CNeonInvader::AnimateCameraShaking()
+{
+	if (m_CBCameraShakeData.CameraOffsetX == 0 && m_CBCameraShakeData.CameraOffsetY == 0) return;
+
+	m_CBCameraShakeData.CameraOffsetX *= -0.98f;
+	m_CBCameraShakeData.CameraOffsetY *= -0.98f;
+
+	if (fabs(m_CBCameraShakeData.CameraOffsetX) <= 0.001f) m_CBCameraShakeData.CameraOffsetX = 0;
+	if (fabs(m_CBCameraShakeData.CameraOffsetY) <= 0.001f) m_CBCameraShakeData.CameraOffsetY = 0;
+
+	CConstantBuffer* cb_camera_shake{ m_PtrDirectX->GetCBCameraShakePtr() };
+	cb_camera_shake->Update(&m_CBCameraShakeData);
+}
+
+void CNeonInvader::ShakeCamera(float XIntensity, float YIntensity)
+{
+	m_CBCameraShakeData.CameraOffsetX = XIntensity;
+	m_CBCameraShakeData.CameraOffsetY = YIntensity;
 }
 
 void CNeonInvader::ExecuteGame()

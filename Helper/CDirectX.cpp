@@ -129,6 +129,9 @@ void CDirectX::CreateBaseConstantBuffers()
 
 	m_CBWorld = make_unique<CConstantBuffer>(m_Device.Get(), m_DeviceContext.Get());
 	m_CBWorld->Create(1, sizeof(XMMATRIX));
+
+	m_CBCameraShake = make_unique<CConstantBuffer>(m_Device.Get(), m_DeviceContext.Get());
+	m_CBCameraShake->Create(2, sizeof(SCBCameraShake));
 }
 
 void CDirectX::CreateImageBlendState()
@@ -194,6 +197,7 @@ void CDirectX::BeginRendering(const float(&ClearColorArray)[4])
 {
 	m_CBProjection->Use(EShaderType::VertexShader);
 	m_CBWorld->Use(EShaderType::VertexShader);
+	m_CBCameraShake->Use(EShaderType::VertexShader);
 
 	m_DeviceContext->OMSetBlendState(m_BlendImageTransparency.Get(), nullptr, 0xFFFFFFFF);
 

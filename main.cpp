@@ -6,7 +6,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPTSTR lpCmdLine, _In_ int nShowCmd)
 {
-	static constexpr float KClearColor[]{ 0.0f, 0.6f, 1.0f, 1.0f };
+	static constexpr float KClearColor[]{ 0.023f, 0.07f, 0.13f, 1.0f };
 	static constexpr D3D11_INPUT_ELEMENT_DESC KInputLayout[]
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -34,7 +34,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CTexture* texture_itemset{ texture_pool.AddSharedTexture(KAssetDir + "itemset.png") };
 	CTexture* texture_ui{ texture_pool.AddSharedTexture(KAssetDir + "ui.png") };
 
-	CNeonInvader neon_invader{ KWindowSize };
+	CNeonInvader neon_invader{ KWindowSize, &directx };
 
 	CEntityPool entity_pool{ &directx };
 	vector<SShot> v_main_ship_shots{};
@@ -377,8 +377,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			if (time_now_microsec >= timer_animation + 1'500)
 			{
-				neon_invader.AnimateEffects();
-				neon_invader.AnimateScores();
+				neon_invader.AnimateScene();
 
 				timer_animation = time_now_microsec;
 			}
@@ -396,6 +395,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 			entity_pool.ApplyPhysics(delta_time);
 			entity_pool.DrawEntitiesInAddedOrder();
+
+			neon_invader.SetCameraToOrigin();
 
 			if (should_show_title)
 			{

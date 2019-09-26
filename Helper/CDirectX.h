@@ -5,6 +5,13 @@
 #include "CObject2D.h"
 #include "CConstantBuffer.h"
 
+struct SCBCameraShake
+{
+	float CameraOffsetX;
+	float CameraOffsetY;
+	float pad[2];
+};
+
 class CDirectX
 {
 	friend class CObject2D;
@@ -28,6 +35,7 @@ public:
 public:
 	ID3D11Device* GetDevicePtr() { return m_Device.Get(); }
 	ID3D11DeviceContext* GetDeviceContextPtr() { return m_DeviceContext.Get(); }
+	CConstantBuffer* GetCBCameraShakePtr() { return m_CBCameraShake.get(); }
 
 private:
 	void CreateWin32Window(LPCTSTR Title, WNDPROC WndProc, int nShowCmd);
@@ -61,6 +69,7 @@ private:
 	XMMATRIX						m_MatrixProjection{};
 	unique_ptr<CConstantBuffer>		m_CBProjection{};
 	unique_ptr<CConstantBuffer>		m_CBWorld{};
+	unique_ptr<CConstantBuffer>		m_CBCameraShake{};
 
 	unique_ptr<SpriteBatch>			m_SpriteBatch{};
 	unique_ptr<SpriteFont>			m_SpriteFont{};

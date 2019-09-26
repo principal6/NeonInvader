@@ -58,7 +58,7 @@ struct SItem
 class CNeonInvader final
 {
 public:
-	CNeonInvader(const XMFLOAT2& WindowSize) : m_WindowSize{ WindowSize } {}
+	CNeonInvader(const XMFLOAT2& WindowSize, CDirectX* PtrDirectX) : m_WindowSize{ WindowSize }, m_PtrDirectX{ PtrDirectX } {}
 	~CNeonInvader() { ReleaseAudio(); }
 
 	void InitAudio(const string& AssetDir);
@@ -72,8 +72,9 @@ public:
 	bool SpawnMainSpriteShot();
 	void SpawnItem();
 
-	void AnimateEffects();
-	void AnimateScores();
+	void AnimateScene();
+	void SetCameraToOrigin();
+	
 	void ReorientEnemies();
 	void ReorientItems();
 
@@ -108,6 +109,12 @@ private:
 	void ProcessCollision();
 	void RepositionEnemiesOutOfScreen();
 	void OrientEntityTowardsMainEntity(CEntity* PtrEntity, float SpeedFactor, bool GraduallyOrient = false, float RotationSpeedFactor = 1.0f);
+	
+	void AnimateEffects();
+	void AnimateScores();
+	void AnimateCameraShaking();
+	void ShakeCamera(float XIntensity, float YIntensity);
+
 	void ClearDeadShots();
 	void ClearDeadItems();
 
@@ -121,14 +128,18 @@ public:
 
 private:
 	static constexpr float KScreenSpawnBoundary{ 30.0f };
+	static constexpr int KCollisionInterval{ 200 };
+	static constexpr float KCameraShakeXIntensity{ 20.0f };
+	static constexpr float KCameraShakeYIntensity{ 10.0f };
+
+private:
+	static constexpr int KItemTypeCount{ 4 };
 	static constexpr float KEnemyNormalSpeedFactor{ 1.2f };
 	static constexpr float KEnemyBigSpeedFactor{ 1.5f };
 	static constexpr float KItemSpeedFactor{ 120.0f };
 	static constexpr float KDefaultBulletSpeed{ 200.0f };
 	static constexpr float KMaxBulletSpeed{ 600.0f };
-	static constexpr int KCollisionInterval{ 200 };
 	static constexpr int KEnemyShotIntervalDeviance{ 300 };
-	static constexpr int KItemTypeCount{ 4 };
 	static constexpr int KDefaultReloadInterval{ 400 };
 	static constexpr int KMinReloadInterval{ 50 };
 	static constexpr int KDefaultAmmoCount{ 4 };
@@ -139,6 +150,7 @@ private:
 	static constexpr int KScoreGetItem{ 10 };
 	static constexpr int KScoreKillEnemy{ 20 };
 
+	CDirectX*			m_PtrDirectX{};
 	XMFLOAT2			m_WindowSize{};
 
 	bool				m_GameStarted{ false };
@@ -183,4 +195,6 @@ private:
 
 	FMOD::Channel*		m_FMODChannelBG{};
 	FMOD::Channel*		m_FMODChannelEffects{};
+
+	SCBCameraShake		m_CBCameraShakeData{};
 };
