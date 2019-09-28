@@ -219,9 +219,8 @@ void CNeonInvader::DetectCoarseCollision()
 {
 	CEntityPool::DetectCoarseCollision();
 
+	// Collision type #01 { Main sprite, Enemy sprites }
 	m_PtrMainSprite->m_Collided = false;
-
-	// Main sprite vs. Enemy sprites
 	for (auto& enemy : m_vEnemies)
 	{
 		enemy.PtrEntity->m_Collided = false;
@@ -238,7 +237,7 @@ void CNeonInvader::DetectCoarseCollision()
 		}
 	}
 
-	// Main sprite vs. Enemy shots
+	// Collision type #02 { Main sprite, Enemy shots }
 	for (auto& enemy_shot : m_vEnemyShots)
 	{
 		enemy_shot.PtrEntity->m_Collided = false;
@@ -255,7 +254,7 @@ void CNeonInvader::DetectCoarseCollision()
 		}
 	}
 
-	// Main sprite vs. Items
+	// Collision type #03 { Main sprite, Items }
 	for (auto& item : m_vItems)
 	{
 		item.PtrEntity->m_Collided = false;
@@ -272,7 +271,7 @@ void CNeonInvader::DetectCoarseCollision()
 		}
 	}
 
-	// Main sprite shots vs. Enemy sprites
+	// Collision type #04 { Main sprite shots, Enemy sprites }
 	for (auto& main_sprite_shot : m_vMainShipShots)
 	{
 		main_sprite_shot.PtrEntity->m_Collided = false;
