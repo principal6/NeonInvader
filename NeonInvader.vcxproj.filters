@@ -155,9 +155,6 @@
     <ClInclude Include="DirectXTK\XboxDDSTextureLoader.h">
       <Filter>DirectXTK</Filter>
     </ClInclude>
-    <ClInclude Include="Helper\CTexturePool.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Helper\CASCIIRenderer.h">
       <Filter>Helper</Filter>
     </ClInclude>
@@ -190,6 +187,9 @@
     </ClInclude>
     <ClInclude Include="FMOD\fmod_output.h">
       <Filter>FMOD</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\CTexturePool.h">
+      <Filter>Helper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
